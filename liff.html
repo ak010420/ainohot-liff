@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>予約ページへ</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div id="loading">処理中...</div>
+  
+  <script>
+    // LIFF初期化
+    liff.init({ liffId: "あなたのLIFF ID" })
+      .then(() => {
+        // ログインチェック
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        
+        // ユーザーIDの取得
+        const context = liff.getContext();
+        const userId = context.userId;
+        
+        // URLに一時的なパラメータとしてエンコード
+        const encodedId = encodeURIComponent(btoa(userId));
+        
+        // クッキーに保存（代替手段）
+        document.cookie = `line_user_id_temp=${encodedId}; max-age=1800; path=/; secure; samesite=none`;
+        
+        // 予約システムへリダイレクト
+        window.location.href = `https://your-reservation-system.com/form?ref=${encodedId}`;
+      })
+      .catch((err) => {
+        document.getElementById("loading").innerText = "エラーが発生しました。もう一度お試しください。";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
