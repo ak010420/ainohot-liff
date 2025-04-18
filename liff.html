@@ -3,39 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>予約ページへ</title>
+  <title>予約フォームへ</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+    .container { max-width: 500px; margin: 0 auto; padding-top: 50px; }
+    .message { margin: 20px 0; }
+    .spinner { 
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #0062eb;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <div id="loading">処理中...</div>
-  
+  <div class="container">
+    <h1>予約フォームへ移動中</h1>
+    <div class="spinner"></div>
+    <div id="message" class="message">LINE情報を取得中です...</div>
+  </div>
+
   <script>
-    // LIFF初期化
-    liff.init({ liffId: "あなたのLIFF ID" })
-      .then(() => {
-        // ログインチェック
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-        
-        // ユーザーIDの取得
-        const context = liff.getContext();
-        const userId = context.userId;
-        
-        // URLに一時的なパラメータとしてエンコード
-        const encodedId = encodeURIComponent(btoa(userId));
-        
-        // クッキーに保存（代替手段）
-        document.cookie = `line_user_id_temp=${encodedId}; max-age=1800; path=/; secure; samesite=none`;
-        
-        // 予約システムへリダイレクト
-        window.location.href = `https://your-reservation-system.com/form?ref=${encodedId}`;
-      })
-      .catch((err) => {
-        document.getElementById("loading").innerText = "エラーが発生しました。もう一度お試しください。";
-        console.error(err);
-      });
+    document.addEventListener('DOMContentLoaded', () => {
+      // LIFF初期化
+      liff.init({ liffId: "2006782211-8153KyzZ" })
+        .then(async () => {
+          // ログインチェック
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+          
+          try {
+            // ユーザープロフィール取得
+            const profile = await liff.getProfile();
+            const userId = profile.userId;
+            
+            // Google Apps Scriptに送信
+            const response = await fetch('https://script.google.com/macros/s/AKfycbxjhjF56Tcptvhe1K2XM7M4g-fcJ2eewZDseHSjSUORzfPWEe8eO7t9gUxoV0pSZmsl/exec', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                lineUserId: userId,
+                timestamp: new Date().toISOString()
+              })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+              document.getElementById('message').textContent = 'FormRunフォームへ移動します...';
+              
+              // パラメータを付与してFormRunにリダイレクト
+              const encodedId = encodeURIComponent(btoa(userId));
+              window.location.href = 'https://form.run/@ainohot-zDcCiiVgtAuj1VPopd3w?line_token=' + encodedId;
+            } else {
+              document.getElementById('message').textContent = 'エラーが発生しました: ' + result.error;
+            }
+          } catch (error) {
+            document.getElementById('message').textContent = 'エラーが発生しました: ' + error.message;
+            console.error(error);
+          }
+        })
+        .catch((err) => {
+          document.getElementById('message').textContent = 'LINEの初期化に失敗しました';
+          console.error(err);
+        });
+    });
   </script>
 </body>
 </html>
