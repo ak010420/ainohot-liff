@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AINOHOT試乗予約フォーム</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f4f6f8;
+      padding: 2rem;
+    }
+    .form-container {
+      max-width: 650px;
+      margin: auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #2c3e50;
+    }
+    label {
+      display: block;
+      margin-top: 1.5rem;
+      font-weight: 700;
+      color: #34495e;
+    }
+    input[type="text"],
+    input[type="tel"],
+    input[type="date"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .radio-group,
+    .checkbox-group {
+      margin-top: 0.5rem;
+    }
+    .radio-group label,
+    .checkbox-group label {
+      margin-right: 1rem;
+      font-weight: normal;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    button {
+      margin-top: 2rem;
+      width: 100%;
+      background: #3498db;
+      color: white;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1>AINOHOT試乗予約フォーム</h1>
+    <form action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
+      <label for="name">氏名 *</label>
+      <input type="text" name="entry.1888357659" id="name" required />
+
+      <label for="furigana">フリガナ *</label>
+      <input type="text" name="entry.1916624507" id="furigana" required />
+
+      <label for="birthdate">生年月日 *</label>
+      <input type="date" name="entry.566135767" id="birthdate" required />
+
+      <label>性別 *</label>
+      <div class="radio-group">
+        <label><input type="radio" name="entry.1472074917" value="男性" checked /> 男性</label>
+        <label><input type="radio" name="entry.1472074917" value="女性" /> 女性</label>
+        <label><input type="radio" name="entry.1472074917" value="その他" /> その他</label>
+      </div>
+
+      <label for="phone">電話番号</label>
+      <input type="tel" name="entry.1974707166" id="phone" />
+
+      <label for="reservation_date">予約日時 *</label>
+      <input type="date" name="entry.1608470188" id="reservation_date" required />
+
+      <label for="model">試乗モデル</label>
+      <select name="entry.1603933661" id="model">
+        <option value="ST3">ST3</option>
+        <option value="SAGA one">SAGA one</option>
+        <option value="SAGA lite">SAGA lite</option>
+        <option value="SAGA pro">SAGA pro</option>
+        <option value="SAGA suv">SAGA suv</option>
+        <option value="R6">R6</option>
+        <option value="AS6">AS6</option>
+        <option value="S07">S07</option>
+        <option value="H001">H001</option>
+        <option value="ECOGO">ECOGO</option>
+      </select>
+
+      <label>AINOHOTのことはどちらでお知りになりましたか。 *</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="entry.1525260838" value="テレビ" /> テレビ</label>
+        <label><input type="checkbox" name="entry.1525260838" value="ラジオ" /> ラジオ</label>
+        <label><input type="checkbox" name="entry.1525260838" value="新聞" /> 新聞</label>
+        <label><input type="checkbox" name="entry.1525260838" value="雑誌" /> 雑誌</label>
+        <label><input type="checkbox" name="entry.1525260838" value="Webメディア" /> Webメディア</label>
+        <label><input type="checkbox" name="entry.1525260838" value="企業HP" /> 企業HP</label>
+        <label><input type="checkbox" name="entry.1525260838" value="ネット広告" /> ネット広告</label>
+        <label><input type="checkbox" name="entry.1525260838" value="メルマガ" /> メルマガ</label>
+        <label><input type="checkbox" name="entry.1525260838" value="SNS・ブログ" /> SNS・ブログ</label>
+        <label><input type="checkbox" name="entry.1525260838" value="交通広告" /> 交通広告</label>
+        <label><input type="checkbox" name="entry.1525260838" value="イベント" /> イベント</label>
+        <label><input type="checkbox" name="entry.1525260838" value="その他" /> その他</label>
+      </div>
+
+      <label for="comments">ご要望などありましたらご記入ください</label>
+      <textarea name="entry.453751375" id="comments" placeholder="ご自由にお書きください…"></textarea>
+
+      <button type="submit">送信する</button>
+    </form>
+
+    <!-- サンクスページへリダイレクト用 -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) window.location='thanks.html';"></iframe>
+  </div>
+</body>
+</html>
