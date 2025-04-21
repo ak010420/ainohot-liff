@@ -144,35 +144,51 @@
   </div>
 
   <script>
-    let liffId = "2006782211-8153KyzZ"; // LIFF IDを設定してください
+    let liffId = "2006782211-8153KyzZ";
     let submitted = false;
 
     async function initializeLiff() {
       try {
+        console.log('LIFF初期化開始');
         await liff.init({ liffId: liffId });
+        console.log('LIFF初期化成功');
+
         if (!liff.isLoggedIn()) {
-          liff.login();
+          console.log('未ログイン状態です。ログインを開始します。');
+          liff.login({
+            redirectUri: window.location.href
+          });
         } else {
+          console.log('ログイン済みです。プロフィールを取得します。');
           const profile = await liff.getProfile();
+          console.log('プロフィール取得成功:', profile);
           document.getElementById('lineUserId').value = profile.userId;
         }
       } catch (error) {
-        console.error('LIFF initialization failed', error);
+        console.error('LIFF初期化エラー:', error);
+        alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
       }
     }
 
     function handleSubmit(event) {
       if (!liff.isLoggedIn()) {
+        console.log('送信時ログイン確認: 未ログイン');
         alert('LINEログインが必要です');
-        liff.login();
+        liff.login({
+          redirectUri: window.location.href
+        });
         return false;
       }
+      console.log('送信時ログイン確認: ログイン済み');
       submitted = true;
       return true;
     }
 
-    // LIFFの初期化
-    initializeLiff();
+    // ページ読み込み完了時にLIFFを初期化
+    window.addEventListener('load', () => {
+      console.log('ページ読み込み完了');
+      initializeLiff();
+    });
   </script>
 </body>
 </html>
