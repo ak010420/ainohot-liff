@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://docs.google.com">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://static.line-scdn.net https://docs.google.com; script-src 'self' 'unsafe-inline' https://static.line-scdn.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
   <title>AINOHOT試乗予約フォーム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -246,21 +246,9 @@
       submitted = true;
       console.log('フォーム送信実行');
       
-      // フォーム送信を非同期で実行
-      fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        mode: 'no-cors'
-      })
-      .then(() => {
-        console.log('フォーム送信成功');
-        window.location.href = 'thanks.html';
-      })
-      .catch(error => {
-        console.error('フォーム送信エラー:', error);
-        alert('フォームの送信に失敗しました。もう一度お試しください。');
-      });
-
+      // Googleフォームへの送信
+      form.submit();
+      
       return false;
     }
 
@@ -269,6 +257,14 @@
       console.log('ページ読み込み完了');
       initializeLiff();
     });
+
+    // iframeのonloadイベントハンドラを設定
+    document.getElementById('hidden_iframe').onload = function() {
+      if (submitted) {
+        console.log('フォーム送信成功、サンクスページへリダイレクト');
+        window.location.href = 'thanks.html';
+      }
+    };
   </script>
 </body>
 </html> 
