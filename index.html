@@ -192,20 +192,24 @@
         console.log(`${key}: ${value}`);
       }
 
-      window.submitted = true;
+      submitted = true;
       form.submit();
       
       return false;
     }
-
-    // グローバル変数としてsubmittedを定義
-    window.submitted = false;
 
     // ページ読み込み完了時にLIFFを初期化
     window.addEventListener('load', () => {
       console.log('ページ読み込み完了');
       initializeLiff();
     });
+
+    // iframeのonloadイベントハンドラを設定
+    document.getElementById('hidden_iframe').onload = function() {
+      if (submitted) {
+        window.location.href = 'thanks.html';
+      }
+    };
   </script>
 </body>
 </html> 
