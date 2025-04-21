@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://*.line.me;" />
   <title>AINOHOT試乗予約フォーム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -152,8 +153,7 @@
         console.log('LIFF初期化開始');
         await liff.init({ 
           liffId: liffId,
-          withLoginOnExternalBrowser: true,
-          redirectUri: window.location.href
+          withLoginOnExternalBrowser: true
         });
         console.log('LIFF初期化成功');
 
@@ -176,7 +176,7 @@
     }
 
     function handleSubmit(event) {
-      event.preventDefault(); // デフォルトの送信を防止
+      event.preventDefault();
 
       if (!liff.isLoggedIn()) {
         console.log('送信時ログイン確認: 未ログイン');
@@ -185,23 +185,21 @@
         return false;
       }
 
-      // フォームデータの送信を確認
       const form = document.getElementById('reservationForm');
       const formData = new FormData(form);
       
-      // フォームデータの内容をログ出力
       for (let [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
       }
 
-      // 送信フラグを設定
-      submitted = true;
-      
-      // フォームを送信
+      window.submitted = true;
       form.submit();
       
       return false;
     }
+
+    // グローバル変数としてsubmittedを定義
+    window.submitted = false;
 
     // ページ読み込み完了時にLIFFを初期化
     window.addEventListener('load', () => {
