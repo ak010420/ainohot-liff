@@ -81,67 +81,87 @@
   <div class="form-container">
     <h1>AINOHOT試乗予約フォーム</h1>
     <form id="reservationForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="hidden_iframe" onsubmit="return handleSubmit(event);">
-      <input type="hidden" name="entry.1928428385" id="lineUserId" />
-      <label for="name">氏名 *</label>
-      <input type="text" name="entry.1888357659" id="name" required />
-
-      <label for="furigana">フリガナ *</label>
-      <input type="text" name="entry.1916624507" id="furigana" required />
-
-      <label for="birthdate">生年月日 *</label>
-      <input type="date" name="entry.566135767" id="birthdate" required />
-
-      <label>性別 *</label>
-      <div class="radio-group">
-        <label><input type="radio" name="entry.1472074917" value="男性" checked /> 男性</label>
-        <label><input type="radio" name="entry.1472074917" value="女性" /> 女性</label>
-        <label><input type="radio" name="entry.1472074917" value="その他" /> その他</label>
+      <input type="hidden" name="entry.1928428385" id="lineUserId" autocomplete="off" />
+      
+      <div class="form-group">
+        <label for="name">氏名 *</label>
+        <input type="text" name="entry.1888357659" id="name" required autocomplete="name" aria-required="true" />
       </div>
 
-      <label for="phone">電話番号 *</label>
-      <input type="tel" name="entry.1974707166" id="phone" />
-
-      <label for="reservation_datetime">予約日時 *</label>
-      <input type="datetime-local" name="entry.1608470188" id="reservation_datetime" required />
-
-      <label for="model">試乗モデル</label>
-      <select name="entry.1603933661" id="model">
-        <option value="ST3">ST3</option>
-        <option value="SAGA one">SAGA one</option>
-        <option value="SAGA lite">SAGA lite</option>
-        <option value="SAGA pro">SAGA pro</option>
-        <option value="SAGA suv">SAGA suv</option>
-        <option value="R6">R6</option>
-        <option value="AS6">AS6</option>
-        <option value="S07">S07</option>
-        <option value="H001">H001</option>
-        <option value="ECOGO">ECOGO</option>
-      </select>
-
-      <label>AINOHOTのことはどちらでお知りになりましたか。 *</label>
-      <div class="checkbox-group">
-        <label><input type="checkbox" name="entry.1525260838" value="テレビ" /> テレビ</label>
-        <label><input type="checkbox" name="entry.1525260838" value="ラジオ" /> ラジオ</label>
-        <label><input type="checkbox" name="entry.1525260838" value="新聞" /> 新聞</label>
-        <label><input type="checkbox" name="entry.1525260838" value="雑誌" /> 雑誌</label>
-        <label><input type="checkbox" name="entry.1525260838" value="Webメディア" /> Webメディア</label>
-        <label><input type="checkbox" name="entry.1525260838" value="企業HP" /> 企業HP</label>
-        <label><input type="checkbox" name="entry.1525260838" value="ネット広告" /> ネット広告</label>
-        <label><input type="checkbox" name="entry.1525260838" value="メルマガ" /> メルマガ</label>
-        <label><input type="checkbox" name="entry.1525260838" value="SNS・ブログ" /> SNS・ブログ</label>
-        <label><input type="checkbox" name="entry.1525260838" value="交通広告" /> 交通広告</label>
-        <label><input type="checkbox" name="entry.1525260838" value="イベント" /> イベント</label>
-        <label><input type="checkbox" name="entry.1525260838" value="その他" /> その他</label>
+      <div class="form-group">
+        <label for="furigana">フリガナ *</label>
+        <input type="text" name="entry.1916624507" id="furigana" required autocomplete="off" aria-required="true" />
       </div>
 
-      <label for="comments">ご要望などありましたらご記入ください</label>
-      <textarea name="entry.453751375" id="comments" placeholder="ご自由にお書きください…"></textarea>
+      <div class="form-group">
+        <label for="birthdate">生年月日 *</label>
+        <input type="date" name="entry.566135767" id="birthdate" required autocomplete="bday" aria-required="true" />
+      </div>
 
-      <button type="submit">送信する</button>
+      <div class="form-group">
+        <label>性別 *</label>
+        <div class="radio-group" role="radiogroup" aria-required="true">
+          <label><input type="radio" name="entry.1472074917" value="男性" checked autocomplete="off" /> 男性</label>
+          <label><input type="radio" name="entry.1472074917" value="女性" autocomplete="off" /> 女性</label>
+          <label><input type="radio" name="entry.1472074917" value="その他" autocomplete="off" /> その他</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">電話番号 *</label>
+        <input type="tel" name="entry.1974707166" id="phone" required autocomplete="tel" aria-required="true" />
+      </div>
+
+      <div class="form-group">
+        <label for="reservation_datetime">予約日時 *</label>
+        <input type="datetime-local" name="entry.1608470188" id="reservation_datetime" required autocomplete="off" aria-required="true" />
+      </div>
+
+      <div class="form-group">
+        <label for="model">試乗モデル</label>
+        <select name="entry.1603933661" id="model" autocomplete="off">
+          <option value="">選択してください</option>
+          <option value="ST3">ST3</option>
+          <option value="SAGA one">SAGA one</option>
+          <option value="SAGA lite">SAGA lite</option>
+          <option value="SAGA pro">SAGA pro</option>
+          <option value="SAGA suv">SAGA suv</option>
+          <option value="R6">R6</option>
+          <option value="AS6">AS6</option>
+          <option value="S07">S07</option>
+          <option value="H001">H001</option>
+          <option value="ECOGO">ECOGO</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>AINOHOTのことはどちらでお知りになりましたか。 *</label>
+        <div class="checkbox-group" role="group" aria-required="true">
+          <label><input type="checkbox" name="entry.1525260838" value="テレビ" autocomplete="off" /> テレビ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="ラジオ" autocomplete="off" /> ラジオ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="新聞" autocomplete="off" /> 新聞</label>
+          <label><input type="checkbox" name="entry.1525260838" value="雑誌" autocomplete="off" /> 雑誌</label>
+          <label><input type="checkbox" name="entry.1525260838" value="Webメディア" autocomplete="off" /> Webメディア</label>
+          <label><input type="checkbox" name="entry.1525260838" value="企業HP" autocomplete="off" /> 企業HP</label>
+          <label><input type="checkbox" name="entry.1525260838" value="ネット広告" autocomplete="off" /> ネット広告</label>
+          <label><input type="checkbox" name="entry.1525260838" value="メルマガ" autocomplete="off" /> メルマガ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="SNS・ブログ" autocomplete="off" /> SNS・ブログ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="交通広告" autocomplete="off" /> 交通広告</label>
+          <label><input type="checkbox" name="entry.1525260838" value="イベント" autocomplete="off" /> イベント</label>
+          <label><input type="checkbox" name="entry.1525260838" value="その他" autocomplete="off" /> その他</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="comments">ご要望などありましたらご記入ください</label>
+        <textarea name="entry.453751375" id="comments" placeholder="ご自由にお書きください…" autocomplete="off"></textarea>
+      </div>
+
+      <button type="submit" aria-label="フォームを送信">送信する</button>
     </form>
 
     <!-- サンクスページへリダイレクト用 -->
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { window.location.href='thanks.html'; }"></iframe>
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
   </div>
 
   <script>
@@ -194,18 +214,53 @@
       const form = document.getElementById('reservationForm');
       const formData = new FormData(form);
       
+      // デバッグ情報の出力
+      console.log('フォーム送信開始');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
       // 必須項目のチェック
-      const requiredFields = ['name', 'furigana', 'birthdate', 'phone', 'reservation_datetime'];
+      const requiredFields = [
+        { name: 'entry.1888357659', label: '氏名' },
+        { name: 'entry.1916624507', label: 'フリガナ' },
+        { name: 'entry.566135767', label: '生年月日' },
+        { name: 'entry.1974707166', label: '電話番号' },
+        { name: 'entry.1608470188', label: '予約日時' }
+      ];
+
       for (const field of requiredFields) {
-        if (!formData.get(`entry.${field}`)) {
-          alert('必須項目が入力されていません。');
+        if (!formData.get(field.name)) {
+          alert(`${field.label}は必須項目です。`);
           return false;
         }
       }
 
+      // チェックボックスの選択確認
+      const checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
+      if (checkboxes.length === 0) {
+        alert('AINOHOTを知ったきっかけを選択してください。');
+        return false;
+      }
+
       submitted = true;
-      form.submit();
+      console.log('フォーム送信実行');
       
+      // フォーム送信を非同期で実行
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors'
+      })
+      .then(() => {
+        console.log('フォーム送信成功');
+        window.location.href = 'thanks.html';
+      })
+      .catch(error => {
+        console.error('フォーム送信エラー:', error);
+        alert('フォームの送信に失敗しました。もう一度お試しください。');
+      });
+
       return false;
     }
 
@@ -214,15 +269,6 @@
       console.log('ページ読み込み完了');
       initializeLiff();
     });
-
-    // iframeのonloadイベントハンドラを設定
-    document.getElementById('hidden_iframe').onload = function() {
-      if (submitted) {
-        setTimeout(() => {
-          window.location.href = 'thanks.html';
-        }, 1000);
-      }
-    };
   </script>
 </body>
 </html> 
