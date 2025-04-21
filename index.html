@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://docs.google.com">
   <title>AINOHOT試乗予約フォーム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -146,8 +147,11 @@
   <script>
     let liffId = "2006782211-8153KyzZ";
     let submitted = false;
+    let isLiffInitialized = false;
 
     async function initializeLiff() {
+      if (isLiffInitialized) return;
+      
       try {
         console.log('LIFF初期化開始');
         await liff.init({ 
@@ -155,6 +159,7 @@
           withLoginOnExternalBrowser: true
         });
         console.log('LIFF初期化成功');
+        isLiffInitialized = true;
 
         if (!liff.isLoggedIn()) {
           console.log('未ログイン状態です。ログインを開始します。');
@@ -174,6 +179,11 @@
     function handleSubmit(event) {
       event.preventDefault();
 
+      if (!isLiffInitialized) {
+        alert('LINEログインの初期化が完了していません。しばらく待ってから再度お試しください。');
+        return false;
+      }
+
       if (!liff.isLoggedIn()) {
         console.log('送信時ログイン確認: 未ログイン');
         alert('LINEログインが必要です');
@@ -184,21 +194,17 @@
       const form = document.getElementById('reservationForm');
       const formData = new FormData(form);
       
-      // フォームデータの内容をログ出力
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
+      // 必須項目のチェック
+      const requiredFields = ['name', 'furigana', 'birthdate', 'phone', 'reservation_datetime'];
+      for (const field of requiredFields) {
+        if (!formData.get(`entry.${field}`)) {
+          alert('必須項目が入力されていません。');
+          return false;
+        }
       }
 
-      // フォームを送信
-      form.submit();
-      
-      // 送信フラグを設定
       submitted = true;
-      
-      // サンクスページへリダイレクト
-      setTimeout(() => {
-        window.location.href = 'thanks.html';
-      }, 1000);
+      form.submit();
       
       return false;
     }
@@ -212,7 +218,9 @@
     // iframeのonloadイベントハンドラを設定
     document.getElementById('hidden_iframe').onload = function() {
       if (submitted) {
-        window.location.href = 'thanks.html';
+        setTimeout(() => {
+          window.location.href = 'thanks.html';
+        }, 1000);
       }
     };
   </script>
