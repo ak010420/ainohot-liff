@@ -140,7 +140,7 @@
     </form>
 
     <!-- サンクスページへリダイレクト用 -->
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) window.location='thanks.html';"></iframe>
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { window.location.href='thanks.html'; }"></iframe>
   </div>
 
   <script>
@@ -152,15 +152,14 @@
         console.log('LIFF初期化開始');
         await liff.init({ 
           liffId: liffId,
-          withLoginOnExternalBrowser: true
+          withLoginOnExternalBrowser: true,
+          redirectUri: window.location.href
         });
         console.log('LIFF初期化成功');
 
         if (!liff.isLoggedIn()) {
           console.log('未ログイン状態です。ログインを開始します。');
-          liff.login({
-            redirectUri: window.location.href
-          });
+          liff.login();
         } else {
           console.log('ログイン済みです。プロフィールを取得します。');
           const profile = await liff.getProfile();
@@ -169,22 +168,39 @@
         }
       } catch (error) {
         console.error('LIFF初期化エラー:', error);
-        alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
+        // エラー時は通常のフォーム送信を許可
+        document.getElementById('reservationForm').onsubmit = function() {
+          return true;
+        };
       }
     }
 
     function handleSubmit(event) {
+      event.preventDefault(); // デフォルトの送信を防止
+
       if (!liff.isLoggedIn()) {
         console.log('送信時ログイン確認: 未ログイン');
         alert('LINEログインが必要です');
-        liff.login({
-          redirectUri: window.location.href
-        });
+        liff.login();
         return false;
       }
-      console.log('送信時ログイン確認: ログイン済み');
+
+      // フォームデータの送信を確認
+      const form = document.getElementById('reservationForm');
+      const formData = new FormData(form);
+      
+      // フォームデータの内容をログ出力
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      // 送信フラグを設定
       submitted = true;
-      return true;
+      
+      // フォームを送信
+      form.submit();
+      
+      return false;
     }
 
     // ページ読み込み完了時にLIFFを初期化
