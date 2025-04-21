@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AINOHOT試乗予約フォーム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
@@ -78,7 +79,8 @@
 <body>
   <div class="form-container">
     <h1>AINOHOT試乗予約フォーム</h1>
-    <form action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="hidden_iframe" onsubmit="submitted=true;">
+    <form id="reservationForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="hidden_iframe" onsubmit="return handleSubmit(event);">
+      <input type="hidden" name="entry.1928428385" id="lineUserId" />
       <label for="name">氏名 *</label>
       <input type="text" name="entry.1888357659" id="name" required />
 
@@ -140,5 +142,37 @@
     <!-- サンクスページへリダイレクト用 -->
     <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) window.location='thanks.html';"></iframe>
   </div>
+
+  <script>
+    let liffId = "YOUR_LIFF_ID"; // LIFF IDを設定してください
+    let submitted = false;
+
+    async function initializeLiff() {
+      try {
+        await liff.init({ liffId: liffId });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const profile = await liff.getProfile();
+          document.getElementById('lineUserId').value = profile.userId;
+        }
+      } catch (error) {
+        console.error('LIFF initialization failed', error);
+      }
+    }
+
+    function handleSubmit(event) {
+      if (!liff.isLoggedIn()) {
+        alert('LINEログインが必要です');
+        liff.login();
+        return false;
+      }
+      submitted = true;
+      return true;
+    }
+
+    // LIFFの初期化
+    initializeLiff();
+  </script>
 </body>
 </html>
