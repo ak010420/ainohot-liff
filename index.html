@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://*.line.me;" />
   <title>AINOHOT試乗予約フォーム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -168,10 +167,7 @@
         }
       } catch (error) {
         console.error('LIFF初期化エラー:', error);
-        // エラー時は通常のフォーム送信を許可
-        document.getElementById('reservationForm').onsubmit = function() {
-          return true;
-        };
+        alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
       }
     }
 
@@ -188,12 +184,21 @@
       const form = document.getElementById('reservationForm');
       const formData = new FormData(form);
       
+      // フォームデータの内容をログ出力
       for (let [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
       }
 
-      submitted = true;
+      // フォームを送信
       form.submit();
+      
+      // 送信フラグを設定
+      submitted = true;
+      
+      // サンクスページへリダイレクト
+      setTimeout(() => {
+        window.location.href = 'thanks.html';
+      }, 1000);
       
       return false;
     }
