@@ -80,45 +80,45 @@
   <div class="form-container">
     <h1>AINOHOT試乗予約フォーム</h1>
     <form id="reservationForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="hidden_iframe" onsubmit="return handleSubmit(event);">
-      <input type="hidden" name="entry.1928428385" id="lineUserId" autocomplete="off" />
+      <input type="hidden" name="entry.1928428385" id="lineUserId" />
       
       <div class="form-group">
         <label for="name">氏名 *</label>
-        <input type="text" name="entry.1888357659" id="name" required autocomplete="name" aria-required="true" />
+        <input type="text" name="entry.1888357659" id="name" required />
       </div>
 
       <div class="form-group">
         <label for="furigana">フリガナ *</label>
-        <input type="text" name="entry.1916624507" id="furigana" required autocomplete="off" aria-required="true" />
+        <input type="text" name="entry.1916624507" id="furigana" required />
       </div>
 
       <div class="form-group">
         <label for="birthdate">生年月日 *</label>
-        <input type="date" name="entry.566135767" id="birthdate" required autocomplete="bday" aria-required="true" />
+        <input type="date" name="entry.566135767" id="birthdate" required />
       </div>
 
       <div class="form-group">
         <label>性別 *</label>
         <div class="radio-group" role="radiogroup" aria-required="true">
-          <label><input type="radio" name="entry.1472074917" value="男性" checked autocomplete="off" /> 男性</label>
-          <label><input type="radio" name="entry.1472074917" value="女性" autocomplete="off" /> 女性</label>
-          <label><input type="radio" name="entry.1472074917" value="その他" autocomplete="off" /> その他</label>
+          <label><input type="radio" name="entry.1472074917" value="男性" required /> 男性</label>
+          <label><input type="radio" name="entry.1472074917" value="女性" /> 女性</label>
+          <label><input type="radio" name="entry.1472074917" value="その他" /> その他</label>
         </div>
       </div>
 
       <div class="form-group">
         <label for="phone">電話番号 *</label>
-        <input type="tel" name="entry.1974707166" id="phone" required autocomplete="tel" aria-required="true" />
+        <input type="tel" name="entry.1974707166" id="phone" required />
       </div>
 
       <div class="form-group">
         <label for="reservation_datetime">予約日時 *</label>
-        <input type="datetime-local" name="entry.1608470188" id="reservation_datetime" required autocomplete="off" aria-required="true" />
+        <input type="datetime-local" name="entry.1608470188" id="reservation_datetime" required />
       </div>
 
       <div class="form-group">
-        <label for="model">試乗モデル</label>
-        <select name="entry.1603933661" id="model" autocomplete="off">
+        <label for="model">試乗モデル *</label>
+        <select name="entry.1603933661" id="model" required>
           <option value="">選択してください</option>
           <option value="ST3">ST3</option>
           <option value="SAGA one">SAGA one</option>
@@ -136,27 +136,27 @@
       <div class="form-group">
         <label>AINOHOTのことはどちらでお知りになりましたか。 *</label>
         <div class="checkbox-group" role="group" aria-required="true">
-          <label><input type="checkbox" name="entry.1525260838" value="テレビ" autocomplete="off" /> テレビ</label>
-          <label><input type="checkbox" name="entry.1525260838" value="ラジオ" autocomplete="off" /> ラジオ</label>
-          <label><input type="checkbox" name="entry.1525260838" value="新聞" autocomplete="off" /> 新聞</label>
-          <label><input type="checkbox" name="entry.1525260838" value="雑誌" autocomplete="off" /> 雑誌</label>
-          <label><input type="checkbox" name="entry.1525260838" value="Webメディア" autocomplete="off" /> Webメディア</label>
-          <label><input type="checkbox" name="entry.1525260838" value="企業HP" autocomplete="off" /> 企業HP</label>
-          <label><input type="checkbox" name="entry.1525260838" value="ネット広告" autocomplete="off" /> ネット広告</label>
-          <label><input type="checkbox" name="entry.1525260838" value="メルマガ" autocomplete="off" /> メルマガ</label>
-          <label><input type="checkbox" name="entry.1525260838" value="SNS・ブログ" autocomplete="off" /> SNS・ブログ</label>
-          <label><input type="checkbox" name="entry.1525260838" value="交通広告" autocomplete="off" /> 交通広告</label>
-          <label><input type="checkbox" name="entry.1525260838" value="イベント" autocomplete="off" /> イベント</label>
-          <label><input type="checkbox" name="entry.1525260838" value="その他" autocomplete="off" /> その他</label>
+          <label><input type="checkbox" name="entry.1525260838" value="テレビ" /> テレビ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="ラジオ" /> ラジオ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="新聞" /> 新聞</label>
+          <label><input type="checkbox" name="entry.1525260838" value="雑誌" /> 雑誌</label>
+          <label><input type="checkbox" name="entry.1525260838" value="Webメディア" /> Webメディア</label>
+          <label><input type="checkbox" name="entry.1525260838" value="企業HP" /> 企業HP</label>
+          <label><input type="checkbox" name="entry.1525260838" value="ネット広告" /> ネット広告</label>
+          <label><input type="checkbox" name="entry.1525260838" value="メルマガ" /> メルマガ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="SNS・ブログ" /> SNS・ブログ</label>
+          <label><input type="checkbox" name="entry.1525260838" value="交通広告" /> 交通広告</label>
+          <label><input type="checkbox" name="entry.1525260838" value="イベント" /> イベント</label>
+          <label><input type="checkbox" name="entry.1525260838" value="その他" /> その他</label>
         </div>
       </div>
 
       <div class="form-group">
         <label for="comments">ご要望などありましたらご記入ください</label>
-        <textarea name="entry.453751375" id="comments" placeholder="ご自由にお書きください…" autocomplete="off"></textarea>
+        <textarea name="entry.453751375" id="comments" placeholder="ご自由にお書きください…"></textarea>
       </div>
 
-      <button type="submit" aria-label="フォームを送信">送信する</button>
+      <button type="submit">送信する</button>
     </form>
 
     <!-- サンクスページへリダイレクト用 -->
@@ -211,59 +211,58 @@
       }
 
       const form = document.getElementById('reservationForm');
-      const formData = new FormData(form);
       
-      // デバッグ情報の出力
-      console.log('フォーム送信開始');
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
-
-      // 必須項目のチェック
-      const requiredFields = [
-        { name: 'entry.1888357659', label: '氏名' },
-        { name: 'entry.1916624507', label: 'フリガナ' },
-        { name: 'entry.566135767', label: '生年月日' },
-        { name: 'entry.1974707166', label: '電話番号' },
-        { name: 'entry.1608470188', label: '予約日時' }
-      ];
-
-      for (const field of requiredFields) {
-        if (!formData.get(field.name)) {
-          alert(`${field.label}は必須項目です。`);
-          return false;
-        }
+      // フォームのバリデーション
+      if (!form.checkValidity()) {
+        alert('必須項目を入力してください。');
+        return false;
       }
 
       // チェックボックスの選択確認
       const checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
       if (checkboxes.length === 0) {
-        alert('AINOHOTを知ったきっかけを選択してください。');
+        alert('AINOHOTを知ったきっかけを1つ以上選択してください。');
         return false;
       }
 
+      // フォームデータの送信前にログ出力
+      const formData = new FormData(form);
+      console.log('送信データ:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      // 送信フラグを設定
       submitted = true;
-      console.log('フォーム送信実行');
-      
-      // Googleフォームへの送信
+      console.log('フォーム送信開始');
+
+      // フォームを送信
       form.submit();
       
+      // 送信完了を待ってからリダイレクト
+      setTimeout(() => {
+        if (submitted) {
+          console.log('送信完了、サンクスページへリダイレクト');
+          window.location.href = 'thanks.html';
+        }
+      }, 2000);
+
       return false;
     }
+
+    // iframeのロードイベントハンドラ
+    document.getElementById('hidden_iframe').onload = function() {
+      console.log('iframe loaded');
+      if (submitted) {
+        console.log('フォーム送信完了を検知');
+      }
+    };
 
     // ページ読み込み完了時にLIFFを初期化
     window.addEventListener('load', () => {
       console.log('ページ読み込み完了');
       initializeLiff();
     });
-
-    // iframeのonloadイベントハンドラを設定
-    document.getElementById('hidden_iframe').onload = function() {
-      if (submitted) {
-        console.log('フォーム送信成功、サンクスページへリダイレクト');
-        window.location.href = 'thanks.html';
-      }
-    };
   </script>
 </body>
 </html> 
