@@ -82,12 +82,7 @@
 <body>
   <div class="form-container">
     <h1>AINOHOT試乗予約フォーム</h1>
-    <form id="reservationForm" 
-      action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" 
-      method="POST" 
-      target="hidden_iframe"
-      enctype="application/x-www-form-urlencoded"
-      onsubmit="return validateAndSubmit();">
+    <form id="reservationForm" onsubmit="return handleSubmit(event);">
       <input type="hidden" name="entry.1928428385" id="lineUserId" />
       
       <div class="form-group">
@@ -171,8 +166,6 @@
 
       <button type="submit" id="submitButton">送信する</button>
     </form>
-
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
   </div>
 
   <script>
@@ -211,40 +204,40 @@
       const datetime = document.getElementById('reservation_datetime').value;
       if (datetime) {
         const date = new Date(datetime);
-        document.getElementById('year').value = date.getFullYear();
-        document.getElementById('month').value = (date.getMonth() + 1).toString().padStart(2, '0');
-        document.getElementById('day').value = date.getDate().toString().padStart(2, '0');
-        document.getElementById('hour').value = date.getHours().toString().padStart(2, '0');
-        document.getElementById('minute').value = date.getMinutes().toString().padStart(2, '0');
+        return {
+          year: date.getFullYear(),
+          month: (date.getMonth() + 1).toString().padStart(2, '0'),
+          day: date.getDate().toString().padStart(2, '0'),
+          hour: date.getHours().toString().padStart(2, '0'),
+          minute: date.getMinutes().toString().padStart(2, '0')
+        };
       }
+      return null;
     }
 
-    function serializeForm(form) {
-      const formData = new FormData(form);
-      return Array.from(formData.entries())
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join('&');
-    }
-
-    async function submitForm(form) {
+    async function submitToGoogleForm(formData) {
+      const url = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse';
+      
       try {
-        const serializedData = serializeForm(form);
-        const response = await fetch(form.action, {
+        const response = await fetch(url, {
           method: 'POST',
+          mode: 'no-cors',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          mode: 'no-cors',
-          body: serializedData
+          body: new URLSearchParams(formData).toString()
         });
+        
         return true;
       } catch (error) {
-        console.error('フォーム送信エラー:', error);
+        console.error('送信エラー:', error);
         return false;
       }
     }
 
-    function validateAndSubmit() {
+    async function handleSubmit(event) {
+      event.preventDefault();
+      
       if (formSubmitted) {
         return false;
       }
@@ -274,26 +267,42 @@
         return false;
       }
 
-      formatDateTime();
-
       const submitButton = document.getElementById('submitButton');
       submitButton.disabled = true;
       formSubmitted = true;
 
-      // フォームデータを直接送信
-      submitted = true;
-      form.submit();
-      
-      // 送信完了後のリダイレクト
-      const iframe = document.getElementById('hidden_iframe');
-      iframe.onload = function() {
-        if(submitted) {
+      // フォームデータの収集
+      const formData = new FormData(form);
+      const dateTime = formatDateTime();
+      if (dateTime) {
+        formData.set('entry.1608470188_year', dateTime.year);
+        formData.set('entry.1608470188_month', dateTime.month);
+        formData.set('entry.1608470188_day', dateTime.day);
+        formData.set('entry.1608470188_hour', dateTime.hour);
+        formData.set('entry.1608470188_minute', dateTime.minute);
+      }
+
+      try {
+        console.log('フォーム送信開始');
+        const success = await submitToGoogleForm(formData);
+        
+        if (success) {
           console.log('フォーム送信完了');
+          // 送信成功時の処理
           setTimeout(() => {
             window.location.href = 'thanks.html';
           }, 1000);
+        } else {
+          alert('送信に失敗しました。もう一度お試しください。');
+          submitButton.disabled = false;
+          formSubmitted = false;
         }
-      };
+      } catch (error) {
+        console.error('送信処理エラー:', error);
+        alert('送信中にエラーが発生しました。もう一度お試しください。');
+        submitButton.disabled = false;
+        formSubmitted = false;
+      }
 
       return false;
     }
