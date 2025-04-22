@@ -85,8 +85,8 @@
     <form id="reservationForm" 
       action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" 
       method="POST" 
-      target="hidden_iframe" 
-      onsubmit="return validateForm();">
+      target="hidden_iframe"
+      onsubmit="return validateAndSubmit();">
       <input type="hidden" name="entry.1928428385" id="lineUserId" />
       
       <div class="form-group">
@@ -200,7 +200,7 @@
       }
     }
 
-    function validateForm() {
+    function validateAndSubmit() {
       if (!isLiffInitialized) {
         alert('LINEログインの初期化が完了していません。しばらく待ってから再度お試しください。');
         return false;
@@ -228,23 +228,18 @@
         return false;
       }
 
-      // バリデーション成功時
+      // フォーム送信前の処理
       submitted = true;
       
-      // 送信後、少し待ってからリダイレクト
-      setTimeout(function() {
-        window.location.href = 'thanks.html';
-      }, 1000);
-      
+      // 送信後のリダイレクト処理
+      document.getElementById('hidden_iframe').onload = function() {
+        if(submitted) {
+          window.location.href = 'thanks.html';
+        }
+      };
+
       return true;
     }
-
-    // iframeのロードイベントハンドラ
-    document.getElementById('hidden_iframe').onload = function() {
-      if(submitted) {
-        console.log('フォーム送信完了');
-      }
-    };
 
     // ページ読み込み完了時にLIFFを初期化
     window.addEventListener('load', () => {
