@@ -82,7 +82,7 @@
 <body>
   <div class="form-container">
     <h1>AINOHOT試乗予約フォーム</h1>
-    <form id="reservationForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="_blank" onsubmit="return handleSubmit(event);">
+    <form id="reservationForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="hidden_iframe" onsubmit="return handleSubmit(event);">
       <input type="hidden" name="entry.1928428385" id="lineUserId" />
       
       <div class="form-group">
@@ -167,11 +167,19 @@
       <button type="submit" id="submitButton">送信する</button>
     </form>
   </div>
+  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
   <script>
     let liffId = "2006782211-8153KyzZ";
     let isLiffInitialized = false;
     let formSubmitted = false;
+
+    // iframe load eventの追加
+    document.getElementById('hidden_iframe').onload = function() {
+      if (formSubmitted) {
+        window.location.href = 'thanks.html';
+      }
+    };
 
     async function initializeLiff() {
       if (isLiffInitialized) return;
@@ -265,12 +273,6 @@
         console.log('フォーム送信開始');
         form.submit();
         console.log('フォーム送信完了');
-        
-        // 送信成功時の処理
-        setTimeout(() => {
-          window.location.href = 'thanks.html';
-        }, 1000);
-        
       } catch (error) {
         console.error('送信処理エラー:', error);
         alert('送信中にエラーが発生しました。もう一度お試しください。');
