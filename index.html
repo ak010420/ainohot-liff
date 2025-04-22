@@ -86,6 +86,7 @@
       action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" 
       method="POST" 
       target="hidden_iframe"
+      enctype="application/x-www-form-urlencoded"
       onsubmit="return validateAndSubmit();">
       <input type="hidden" name="entry.1928428385" id="lineUserId" />
       
@@ -218,16 +219,24 @@
       }
     }
 
-    async function submitForm(formData) {
+    function serializeForm(form) {
+      const formData = new FormData(form);
+      return Array.from(formData.entries())
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+    }
+
+    async function submitForm(form) {
       try {
-        const response = await fetch(
-          'https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse',
-          {
-            method: 'POST',
-            mode: 'no-cors',
-            body: formData
-          }
-        );
+        const serializedData = serializeForm(form);
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          mode: 'no-cors',
+          body: serializedData
+        });
         return true;
       } catch (error) {
         console.error('フォーム送信エラー:', error);
@@ -271,23 +280,22 @@
       submitButton.disabled = true;
       formSubmitted = true;
 
-      const formData = new FormData(form);
+      // フォームデータを直接送信
+      submitted = true;
+      form.submit();
       
-      // フォームデータをFetchAPIで送信
-      submitForm(formData).then(success => {
-        if (success) {
+      // 送信完了後のリダイレクト
+      const iframe = document.getElementById('hidden_iframe');
+      iframe.onload = function() {
+        if(submitted) {
           console.log('フォーム送信完了');
           setTimeout(() => {
             window.location.href = 'thanks.html';
           }, 1000);
-        } else {
-          // フォールバック: 通常のフォーム送信
-          submitted = true;
-          form.submit();
         }
-      });
+      };
 
-      return false; // フォームのデフォルト送信を防ぐ
+      return false;
     }
 
     // ページ読み込み完了時にLIFFを初期化
