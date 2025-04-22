@@ -6,6 +6,9 @@
   <title>AINOHOT試乗予約フォーム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script type="text/javascript">
+    var submitted = false;
+  </script>
   <style>
     body {
       font-family: 'Noto Sans JP', sans-serif;
@@ -169,7 +172,6 @@
 
   <script>
     let liffId = "2006782211-8153KyzZ";
-    let submitted = false;
     let isLiffInitialized = false;
 
     async function initializeLiff() {
