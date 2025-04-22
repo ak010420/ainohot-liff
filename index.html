@@ -79,7 +79,11 @@
 <body>
   <div class="form-container">
     <h1>AINOHOT試乗予約フォーム</h1>
-    <form id="reservationForm" action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" method="POST" target="hidden_iframe" onsubmit="return handleSubmit(event);">
+    <form id="reservationForm" 
+      action="https://docs.google.com/forms/u/0/d/e/1FAIpQLSf_lXm-pnb3_5pycGZFT03Wb6-ghKf7eUc4Y6ekskSpvU2zMw/formResponse" 
+      method="POST" 
+      target="hidden_iframe" 
+      onsubmit="submitted=true;">
       <input type="hidden" name="entry.1928428385" id="lineUserId" />
       
       <div class="form-group">
@@ -159,8 +163,8 @@
       <button type="submit">送信する</button>
     </form>
 
-    <!-- サンクスページへリダイレクト用 -->
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+    <!-- iframeの設定を修正 -->
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted){window.location='thanks.html';}"></iframe>
   </div>
 
   <script>
@@ -225,38 +229,10 @@
         return false;
       }
 
-      // フォームデータの送信前にログ出力
-      const formData = new FormData(form);
-      console.log('送信データ:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
-
-      // 送信フラグを設定
       submitted = true;
-      console.log('フォーム送信開始');
-
-      // フォームを送信
       form.submit();
-      
-      // 送信完了を待ってからリダイレクト
-      setTimeout(() => {
-        if (submitted) {
-          console.log('送信完了、サンクスページへリダイレクト');
-          window.location.href = 'thanks.html';
-        }
-      }, 2000);
-
       return false;
     }
-
-    // iframeのロードイベントハンドラ
-    document.getElementById('hidden_iframe').onload = function() {
-      console.log('iframe loaded');
-      if (submitted) {
-        console.log('フォーム送信完了を検知');
-      }
-    };
 
     // ページ読み込み完了時にLIFFを初期化
     window.addEventListener('load', () => {
