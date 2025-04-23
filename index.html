@@ -467,7 +467,11 @@
       color: #2071E3;
     }
 
-    /* 日付入力フィールドのスタイル */
+    /* カスタムカレンダーアイコン */
+    .date-field-container input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0; /* ネイティブのアイコンを非表示にする */
+    }
+    
     .date-field-container {
       position: relative;
       width: 100%;
@@ -477,7 +481,7 @@
     .date-input {
       width: 100%;
       padding: 0.75rem;
-      padding-right: 2.5rem;
+      padding-right: 2.5rem; /* アイコンのためのスペース */
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 1rem;
@@ -487,6 +491,8 @@
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
+      height: 3rem; /* 高さを統一 */
+      font-family: 'Noto Sans JP', sans-serif; /* フォントを統一 */
     }
     
     .date-input:hover {
@@ -504,8 +510,8 @@
       right: 12px;
       top: 50%;
       transform: translateY(-50%);
-      pointer-events: none;
-      color: #3f4e57;
+      pointer-events: none; /* クリックを日付フィールドに伝える */
+      color: #3498db; /* アイコン色を青色に変更 */
       z-index: 1;
       display: flex;
       align-items: center;
@@ -513,11 +519,20 @@
     }
     
     .calendar-icon {
-      width: 20px;
-      height: 20px;
+      width: 22px; /* サイズを少し大きく */
+      height: 22px;
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    
+    /* カレンダーアイコンのホバーエフェクト */
+    .date-input:hover + .calendar-icon-wrapper {
+      color: #2071E3; /* ホバー時の色を濃い青に */
+    }
+    
+    .date-input:focus + .calendar-icon-wrapper {
+      color: #2071E3;
     }
     
     /* 日付選択ディスプレイ （予約日時と生年月日共通）*/
