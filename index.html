@@ -203,13 +203,15 @@
       width: 100%;
       border-collapse: collapse;
       table-layout: fixed;
+      font-size: 0.9rem;
     }
     .calendar-table th,
     .calendar-table td {
       border: 1px solid #e0e0e0;
       text-align: center;
-      padding: 0.5rem 0;
+      padding: 0.4rem 0;
       position: relative;
+      min-width: 40px;
     }
     .calendar-table th {
       background-color: #f9f9f9;
@@ -219,7 +221,7 @@
       color: #e74c3c;
     }
     .calendar-table th .date {
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
     }
     .calendar-table th .weekday {
@@ -229,6 +231,10 @@
     .calendar-table td.time-label {
       background-color: #f9f9f9;
       font-weight: bold;
+      font-size: 0.85rem;
+      width: 60px;
+      min-width: 60px;
+      max-width: 60px;
     }
     .calendar-table .available {
       color: #8e44ad;
@@ -236,7 +242,7 @@
     }
     .calendar-table .available::before {
       content: "◯";
-      font-size: 1.2rem;
+      font-size: 1.1rem;
     }
     .calendar-table .available:hover {
       background-color: #f0f0f0;
@@ -317,10 +323,10 @@
             </div>
           </div>
           <div class="week-nav-wrapper">
-            <button type="button" id="prev-week-btn" class="week-nav-button">
+            <button type="button" id="prev-week-btn" class="week-nav-button" onclick="prevWeek()">
               <span>←</span>前の週へ
             </button>
-            <button type="button" id="next-week-btn" class="week-nav-button">
+            <button type="button" id="next-week-btn" class="week-nav-button" onclick="nextWeek()">
               次の週へ<span>→</span>
             </button>
           </div>
@@ -384,6 +390,24 @@
   <script type="module">
     import configPromise from './config.js';
     
+    // グローバル変数を設定
+    window.currentDate = new Date();
+    window.timeSlots = [
+      "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
+      "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
+    ];
+    
+    // 週を切り替えるグローバル関数
+    window.prevWeek = function() {
+      window.currentDate.setDate(window.currentDate.getDate() - 7);
+      window.updateCalendar();
+    };
+
+    window.nextWeek = function() {
+      window.currentDate.setDate(window.currentDate.getDate() + 7);
+      window.updateCalendar();
+    };
+    
     async function initializeApp() {
       const config = await configPromise;
       var submitted = false;
@@ -402,12 +426,12 @@
         }
       };
 
-      // 現在の日付を保持
-      let currentDate = new Date();
-      let pickerYear = currentDate.getFullYear();
+      // 現在の日付を保持（グローバル変数を使用）
+      window.currentDate = new Date();
+      let pickerYear = window.currentDate.getFullYear();
       
-      // 利用可能な時間枠
-      const timeSlots = [
+      // 利用可能な時間枠（グローバル変数を使用）
+      window.timeSlots = [
         "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
         "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
       ];
@@ -423,7 +447,7 @@
         monthNames.forEach((month, index) => {
           const monthItem = document.createElement('div');
           monthItem.className = 'month-item';
-          if (pickerYear === currentDate.getFullYear() && index === currentDate.getMonth()) {
+          if (pickerYear === window.currentDate.getFullYear() && index === window.currentDate.getMonth()) {
             monthItem.classList.add('current');
           }
           monthItem.textContent = month;
@@ -439,7 +463,7 @@
       // 月選択処理
       function selectMonth(monthIndex) {
         const newDate = new Date(pickerYear, monthIndex, 1);
-        currentDate = newDate;
+        window.currentDate = newDate;
         updateCalendar();
         document.getElementById('month-picker').classList.remove('active');
       }
@@ -474,7 +498,7 @@
       });
 
       // Googleカレンダーから予定を取得
-      async function loadCalendarEvents(date) {
+      window.loadCalendarEvents = async function(date) {
         const timeMin = new Date(date);
         timeMin.setHours(9, 30, 0, 0);
         
@@ -509,10 +533,36 @@
           console.error('Googleカレンダーの読み込みに失敗しました:', error);
           return [];
         }
-      }
+      };
 
+      // 時間枠が予約可能かチェック
+      window.checkTimeAvailability = function(events, date, time) {
+        const [hours, minutes] = time.split(':');
+        const slotTime = new Date(date);
+        slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        const slotEndTime = new Date(slotTime.getTime() + 90 * 60000); // 90分
+        
+        if (events) {
+          for (const event of events) {
+            const startTime = new Date(event.start.dateTime);
+            const endTime = new Date(event.end.dateTime);
+            
+            if (
+              (slotTime >= startTime && slotTime < endTime) ||
+              (slotEndTime > startTime && slotEndTime <= endTime) ||
+              (slotTime <= startTime && slotEndTime >= endTime)
+            ) {
+              return false; // 予約不可
+            }
+          }
+        }
+        
+        return true; // 予約可能
+      };
+      
       // カレンダーの更新処理
-      async function updateCalendar() {
+      window.updateCalendar = async function() {
         const monthElement = document.getElementById('calendar-month');
         const calendarContainer = document.getElementById('calendar-table-container');
         
@@ -528,12 +578,12 @@
         const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         
         // 月表示を更新
-        monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
+        monthElement.textContent = `${window.currentDate.getFullYear()}年${window.currentDate.getMonth() + 1}月`;
         
         // 週の開始日を月曜日に設定
-        let weekStart = new Date(currentDate);
-        const day = currentDate.getDay();
-        weekStart.setDate(currentDate.getDate() - (day === 0 ? 6 : day - 1));
+        let weekStart = new Date(window.currentDate);
+        const day = window.currentDate.getDay();
+        weekStart.setDate(window.currentDate.getDate() - (day === 0 ? 6 : day - 1));
         
         // テーブルを生成
         const table = document.createElement('table');
@@ -574,10 +624,10 @@
         
         try {
           // Googleカレンダーから予定を取得
-          const events = await loadCalendarEvents(currentDate);
+          const events = await window.loadCalendarEvents(window.currentDate);
           
           // 時間枠ごとの行を生成
-          timeSlots.forEach(time => {
+          window.timeSlots.forEach(time => {
             const row = document.createElement('tr');
             
             // 時間ラベル
@@ -592,11 +642,11 @@
               cell.className = index >= 7 ? 'week2' : 'week1';
               
               // この時間が予約可能かチェック
-              const isAvailable = checkTimeAvailability(events, date, time);
+              const isAvailable = window.checkTimeAvailability(events, date, time);
               
               if (isAvailable) {
                 cell.classList.add('available');
-                cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
+                cell.addEventListener('click', () => window.selectTimeSlot(time, date, cell));
               } else {
                 cell.classList.add('unavailable');
               }
@@ -611,7 +661,7 @@
           console.error('カレンダーの更新に失敗しました:', error);
           
           // エラー時も時間枠ごとの行を生成（すべて利用可能として表示）
-          timeSlots.forEach(time => {
+          window.timeSlots.forEach(time => {
             const row = document.createElement('tr');
             
             // 時間ラベル
@@ -627,7 +677,7 @@
               
               // エラー時はすべて予約可能として表示
               cell.classList.add('available');
-              cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
+              cell.addEventListener('click', () => window.selectTimeSlot(time, date, cell));
               
               row.appendChild(cell);
             });
@@ -639,36 +689,10 @@
         // 古いテーブルを削除して新しいテーブルを追加
         calendarContainer.innerHTML = '';
         calendarContainer.appendChild(table);
-      }
-
-      // 時間枠が予約可能かチェック
-      function checkTimeAvailability(events, date, time) {
-        const [hours, minutes] = time.split(':');
-        const slotTime = new Date(date);
-        slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        
-        const slotEndTime = new Date(slotTime.getTime() + 90 * 60000); // 90分
-        
-        if (events) {
-          for (const event of events) {
-            const startTime = new Date(event.start.dateTime);
-            const endTime = new Date(event.end.dateTime);
-            
-            if (
-              (slotTime >= startTime && slotTime < endTime) ||
-              (slotEndTime > startTime && slotEndTime <= endTime) ||
-              (slotTime <= startTime && slotEndTime >= endTime)
-            ) {
-              return false; // 予約不可
-            }
-          }
-        }
-        
-        return true; // 予約可能
-      }
+      };
 
       // 時間枠選択処理を修正
-      function selectTimeSlot(time, date, cell) {
+      window.selectTimeSlot = function(time, date, cell) {
         // 既存の選択をクリア
         document.querySelectorAll('.calendar-table .selected').forEach(slot => {
           slot.classList.remove('selected');
@@ -688,7 +712,7 @@
         document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
         document.getElementById('hour').value = hours;
         document.getElementById('minute').value = minutes;
-      }
+      };
 
       // LIFF初期化
       async function initializeLiff() {
@@ -775,11 +799,15 @@
       // 初期化処理の実行
       async function initialize() {
         await initializeLiff();
-        await updateCalendar();
+        await window.updateCalendar();
       }
       
       // 初期化を実行
       initialize();
+      
+      // デバッグログを追加
+      console.log('「前の週へ」ボタンのイベントリスナーが設定されました');
+      console.log('「次の週へ」ボタンのイベントリスナーが設定されました');
     }
     
     // アプリケーションの初期化を実行
