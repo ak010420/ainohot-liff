@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AINOHOT試乗予約フォーム</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
   <script type="module">
     import configPromise from './config.js';
   </script>
@@ -51,6 +55,17 @@
       font-size: 1rem;
       box-sizing: border-box;
       transition: all 0.2s ease;
+    }
+    
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233f4e57' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1rem;
+      padding-right: 2.5rem;
     }
     
     input[type="text"]:hover,
@@ -424,35 +439,6 @@
       color: #999;
     }
 
-    /* セレクトボックスのスタイル */
-    .select-wrapper {
-      position: relative;
-      width: 100%;
-    }
-    
-    .select-wrapper select {
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      width: 100%;
-      padding-right: 2.5rem;
-      cursor: pointer;
-    }
-    
-    .select-wrapper::after {
-      content: "";
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 20px;
-      height: 20px;
-      pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg class='icon-svg' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7,10L12,15L17,10H7Z' fill='%233f4e57'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: center;
-    }
-
     input[type="radio"],
     input[type="checkbox"] {
       margin-right: 0.4rem;
@@ -468,6 +454,64 @@
     input[type="radio"]:hover + label,
     input[type="checkbox"]:hover + label {
       color: #2071E3;
+    }
+
+    /* 日付入力フィールドのスタイル */
+    .date-field-container {
+      position: relative;
+      width: 100%;
+    }
+    
+    .date-input-display {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #fff;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0;
+      transition: all 0.2s ease;
+    }
+    
+    .date-input-display:hover {
+      border-color: #3498db;
+    }
+    
+    .date-input-display:focus {
+      border-color: #2071E3;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(32, 113, 227, 0.2);
+    }
+    
+    .date-input-display .calendar-icon {
+      color: #3f4e57;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    /* Flatpickrカスタマイズ */
+    .flatpickr-calendar {
+      font-family: 'Noto Sans JP', sans-serif;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+    }
+    
+    .flatpickr-day.selected {
+      background: #2071E3;
+      border-color: #2071E3;
+    }
+    
+    .flatpickr-day.selected:hover {
+      background: #3498db;
+      border-color: #3498db;
     }
   </style>
 </head>
@@ -489,7 +533,14 @@
 
       <div class="form-group">
         <label for="birthdate">生年月日 *</label>
-        <input type="date" name="entry.566135767" id="birthdate" required />
+        <div class="date-field-container">
+          <input type="text" name="entry.566135767" id="birthdate" class="flatpickr-input" placeholder="日付を選択してください" required readonly="readonly" />
+          <div id="birthdate-calendar-icon" class="calendar-icon" style="position: absolute; right: 12px; top: 14px; pointer-events: none;">
+            <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
+            </svg>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -526,21 +577,19 @@
 
       <div class="form-group">
         <label for="model">試乗モデル *</label>
-        <div class="select-wrapper">
-          <select name="entry.1603933661" id="model" required>
-            <option value="">選択してください</option>
-            <option value="ST3">ST3</option>
-            <option value="SAGA one">SAGA one</option>
-            <option value="SAGA lite">SAGA lite</option>
-            <option value="SAGA pro">SAGA pro</option>
-            <option value="SAGA suv">SAGA suv</option>
-            <option value="R6">R6</option>
-            <option value="AS6">AS6</option>
-            <option value="S07">S07</option>
-            <option value="H001">H001</option>
-            <option value="ECOGO">ECOGO</option>
-          </select>
-        </div>
+        <select name="entry.1603933661" id="model" required>
+          <option value="">選択してください</option>
+          <option value="ST3">ST3</option>
+          <option value="SAGA one">SAGA one</option>
+          <option value="SAGA lite">SAGA lite</option>
+          <option value="SAGA pro">SAGA pro</option>
+          <option value="SAGA suv">SAGA suv</option>
+          <option value="R6">R6</option>
+          <option value="AS6">AS6</option>
+          <option value="S07">S07</option>
+          <option value="H001">H001</option>
+          <option value="ECOGO">ECOGO</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -657,6 +706,20 @@
       
       const CALENDAR_ID = config.googleCalendar.calendarId;
       const API_KEY = config.googleCalendar.apiKey;
+      
+      // Flatpickrの初期化（生年月日用）
+      flatpickr("#birthdate", {
+        locale: "ja",
+        dateFormat: "Y年m月d日",
+        maxDate: new Date(),
+        disableMobile: true,
+        theme: "material_blue",
+        position: "auto",
+        static: true,
+        // 20歳以上100歳以下の範囲に設定
+        minDate: new Date(new Date().setFullYear(new Date().getFullYear() - 100)),
+        defaultDate: new Date(new Date().setFullYear(new Date().getFullYear() - 20))
+      });
       
       // iframe load eventの追加
       document.getElementById('hidden_iframe').onload = function() {
