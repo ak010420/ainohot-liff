@@ -142,12 +142,18 @@
       display: flex;
       justify-content: space-between;
       margin-bottom: 0.5rem;
+      align-items: center;
     }
     .year-nav button {
       background: none;
       border: none;
       cursor: pointer;
       padding: 0.25rem;
+      color: #3498db;
+    }
+    .year-nav span {
+      margin: 0 0.5rem;
+      font-weight: bold;
     }
     .months-grid {
       display: grid;
@@ -174,6 +180,31 @@
       border-bottom: 1px solid #e0e0e0;
       padding-bottom: 0.5rem;
       margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .week-nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: white;
+      border: 1px solid #3498db;
+      color: #3498db;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+    .week-nav-button.prev {
+      left: -130px;
+    }
+    .week-nav-button.next {
+      right: -130px;
+    }
+    .week-nav-button span {
+      margin: 0 0.3rem;
     }
     .calendar-day {
       text-align: center;
@@ -273,13 +304,16 @@
                 </div>
               </div>
             </div>
-            <div class="calendar-nav">
-              <button type="button" id="prev-week">◀</button>
-              <button type="button" id="next-week">▶</button>
-            </div>
+            <!-- カレンダーヘッダーの矢印ボタンを削除 -->
           </div>
           <div class="calendar-grid" id="calendar-days">
             <!-- 日付と曜日はJavaScriptで動的に生成 -->
+            <button type="button" id="prev-week-btn" class="week-nav-button prev">
+              <span>◀</span>前の一週間
+            </button>
+            <button type="button" id="next-week-btn" class="week-nav-button next">
+              次の一週間<span>▶</span>
+            </button>
           </div>
           <div class="calendar-time-slots" id="time-slots">
             <!-- 時間枠はJavaScriptで動的に生成 -->
@@ -520,6 +554,29 @@
         daysElement.innerHTML = '';
         timeSlotsContainer.innerHTML = '';
         
+        // 週移動ボタンの追加（クリアしたので再追加）
+        const prevWeekBtn = document.createElement('button');
+        prevWeekBtn.type = 'button';
+        prevWeekBtn.id = 'prev-week-btn';
+        prevWeekBtn.className = 'week-nav-button prev';
+        prevWeekBtn.innerHTML = '<span>◀</span>前の一週間';
+        prevWeekBtn.addEventListener('click', () => {
+          currentDate.setDate(currentDate.getDate() - 7);
+          updateCalendar();
+        });
+        daysElement.appendChild(prevWeekBtn);
+        
+        const nextWeekBtn = document.createElement('button');
+        nextWeekBtn.type = 'button';
+        nextWeekBtn.id = 'next-week-btn';
+        nextWeekBtn.className = 'week-nav-button next';
+        nextWeekBtn.innerHTML = '次の一週間<span>▶</span>';
+        nextWeekBtn.addEventListener('click', () => {
+          currentDate.setDate(currentDate.getDate() + 7);
+          updateCalendar();
+        });
+        daysElement.appendChild(nextWeekBtn);
+        
         try {
           // Googleカレンダーから予定を取得
           const events = await loadCalendarEvents(currentDate);
@@ -616,17 +673,6 @@
         document.getElementById('minute').value = minutes;
       }
 
-      // イベントリスナーの設定
-      document.getElementById('prev-week').addEventListener('click', () => {
-        currentDate.setDate(currentDate.getDate() - 7);
-        updateCalendar();
-      });
-
-      document.getElementById('next-week').addEventListener('click', () => {
-        currentDate.setDate(currentDate.getDate() + 7);
-        updateCalendar();
-      });
-
       // LIFF初期化
       async function initializeLiff() {
         if (isLiffInitialized) return;
@@ -710,8 +756,13 @@
       document.getElementById('reservationForm').onsubmit = handleSubmit;
 
       // 初期化処理の実行
-      await initializeLiff();
-      await updateCalendar();
+      async function initialize() {
+        await initializeLiff();
+        await updateCalendar();
+      }
+      
+      // 初期化を実行
+      initialize();
     }
     
     // アプリケーションの初期化を実行
