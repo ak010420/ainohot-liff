@@ -5,5 +5,17 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "LIFF_ID": "@liff_id",
+    "GOOGLE_CALENDAR_API_KEY": "@google_calendar_api_key",
+    "GOOGLE_CALENDAR_ID": "@google_calendar_id"
+  },
+  "build": {
+    "env": {
+      "LIFF_ID": "@liff_id",
+      "GOOGLE_CALENDAR_API_KEY": "@google_calendar_api_key",
+      "GOOGLE_CALENDAR_ID": "@google_calendar_id"
+    }
+  }
 } 
