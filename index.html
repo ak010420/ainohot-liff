@@ -66,8 +66,20 @@
       min-height: 100px;
     }
     button {
+      margin-top: 2rem;
+      width: 100%;
+      background: #3498db;
+      color: white;
+      padding: 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #2980b9;
     }
     /* 予約カレンダーのスタイル */
     .calendar-container {
@@ -137,12 +149,18 @@
       line-height: 1;
     }
     .year-nav button {
-      background: none;
+      margin-top: 0 !important;
+      width: 28px;
+      height: 28px;
+      background: none !important;
+      color: #3498db;
+      padding: 0;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: none;
-      cursor: pointer;
-      font-size: 1.2rem;
-      padding: 0 0.5rem;
-      color: #8e44ad;
+      line-height: 1;
     }
     .year-nav button:hover {
       background: none !important;
@@ -175,26 +193,27 @@
       padding-bottom: 0.5rem;
     }
     .week-nav-button {
-      background: #fac80a;
-      border: none;
-      color: #000;
-      padding: 10px 15px;
-      border-radius: 5px;
+      background: white;
+      border: 1px solid #ddd;
+      color: #666;
+      padding: 0.5rem 0.7rem;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 0.8rem;
       display: flex;
       align-items: center;
       white-space: nowrap;
-      transition: background-color 0.3s;
-      font-weight: bold;
-      max-width: 110px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      max-width: fit-content;
     }
     .week-nav-button:hover {
-      background: #e5b600;
+      background-color: #f5f5f5;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .week-nav-button span {
       margin: 0 0.15rem;
-      font-size: 1rem;
+      font-size: rem;
     }
     
     /* テーブル形式のカレンダー */
@@ -236,7 +255,7 @@
       max-width: 60px;
     }
     .calendar-table .available {
-      color: #8e44ad;
+      color: #3498db;
       cursor: pointer;
     }
     .calendar-table .available::before {
@@ -252,7 +271,7 @@
       font-size: 1.2rem;
     }
     .calendar-table .selected {
-      background-color: #8e44ad;
+      background-color: #3498db;
       color: white;
     }
     .calendar-table .selected::before {
@@ -283,27 +302,6 @@
     }
     .reservation-button:hover {
       background: #2980b9;
-    }
-
-    /* タイムスロットボタン */
-    .time-slot-button {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      text-align: center;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      font-size: 14px;
-      background: #fff;
-      margin-top: 10px;
-    }
-    .time-slot-button:hover {
-      background: #f5f5f5;
-    }
-    .time-slot-button.selected {
-      background: #fac80a;
-      color: #000;
-      border-color: #fac80a;
     }
   </style>
 </head>
@@ -362,10 +360,10 @@
           </div>
           <div class="week-nav-wrapper">
             <button type="button" id="prev-week-btn" class="week-nav-button" onclick="prevWeek()">
-              <span>◀</span>前の週へ
+              <span>←</span>前の週へ
             </button>
             <button type="button" id="next-week-btn" class="week-nav-button" onclick="nextWeek()">
-              次の週へ<span>▶</span>
+              次の週へ<span>→</span>
             </button>
           </div>
           <div id="calendar-table-container">
