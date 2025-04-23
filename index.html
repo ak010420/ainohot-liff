@@ -626,6 +626,13 @@
         padding-top: 5vh;
         overflow-y: auto;
       }
+      
+      #birthdate {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
     }
 
     #calendar-table-container {
@@ -653,15 +660,15 @@
 
       <div class="form-group">
         <label for="birthdate">生年月日 *</label>
-        <div id="birthdate-select" class="birthdate-display" onclick="openBirthdatePicker()">
+        <div id="birthdate-select" class="birthdate-display">
           <span id="birthdate-text">日付を選択してください</span>
           <span class="calendar-icon">
             <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
             </svg>
           </span>
+          <input type="date" name="entry.566135767" id="birthdate" required style="display:none;" />
         </div>
-        <input type="date" name="entry.566135767" id="birthdate" required style="opacity: 0; position: absolute; z-index: -1; width: 100%; height: 100%; top: 0; left: 0;" />
       </div>
 
       <div class="form-group">
@@ -844,16 +851,20 @@
         
         // 生年月日表示を初期化
         updateBirthdateDisplay();
+        
+        // イベントリスナーを追加
+        birthdateField.addEventListener('change', updateBirthdateDisplay);
       }
       
       // 生年月日選択のイベントリスナー設定
       var birthdateSelect = document.getElementById('birthdate-select');
       if (birthdateSelect) {
+        // 既存のonclickを削除してイベントリスナーで置き換え
+        birthdateSelect.removeAttribute('onclick');
         birthdateSelect.addEventListener('click', function(e) {
           e.preventDefault();
-          setTimeout(function() {
-            openBirthdatePicker();
-          }, 50);
+          e.stopPropagation();
+          openBirthdatePicker();
         });
       }
     });
@@ -863,15 +874,23 @@
       try {
         var datePicker = document.getElementById('birthdate');
         if (datePicker) {
-          // モバイルでの互換性のため
-          var event;
+          // 一時的に表示する
+          datePicker.style.display = 'block';
+          datePicker.style.position = 'absolute';
+          datePicker.style.opacity = '0';
+          datePicker.style.left = '0';
+          datePicker.style.top = '0';
+          datePicker.style.width = '100%';
+          datePicker.style.height = '100%';
+          datePicker.style.zIndex = '10';
           
-          // フォーカスを設定（重要）
+          // フォーカスを設定
           datePicker.focus();
           
-          // タイマーを使用して少し遅延させる（特にモバイル向け）
+          // タイマーを使用して少し遅延させる
           setTimeout(function() {
             // クリックイベントを作成して発火
+            var event;
             if (typeof(MouseEvent) === 'function') {
               event = new MouseEvent('click', {
                 'view': window,
@@ -904,9 +923,18 @@
             }
           }, 100);
           
-          // 値が変更されたらテキスト表示を更新
+          // 値が変更されたらテキスト表示を更新し、入力フィールドを非表示に
           datePicker.addEventListener('change', function() {
             updateBirthdateDisplay();
+            // 選択後に非表示に戻す
+            datePicker.style.display = 'none';
+          });
+          
+          // キャンセルされた場合も非表示に戻す
+          datePicker.addEventListener('blur', function() {
+            setTimeout(function() {
+              datePicker.style.display = 'none';
+            }, 200);
           });
         } else {
           console.error('生年月日フィールドが見つかりません');
