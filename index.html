@@ -789,6 +789,31 @@
     var loadCalendarEvents;
     var checkTimeAvailability;
     
+    // アプリケーション初期化状態を追跡するフラグ
+    var isAppInitialized = false;
+    
+    // 初期化完了を検出するための関数
+    function checkInitialized() {
+      if (typeof updateCalendar === 'function' && 
+          typeof selectTimeSlot === 'function' && 
+          typeof loadCalendarEvents === 'function' && 
+          typeof checkTimeAvailability === 'function') {
+        isAppInitialized = true;
+        console.log('アプリケーション初期化の完了を検出しました');
+      } else {
+        console.log('まだ初期化が完了していません');
+      }
+    }
+    
+    // 定期的に初期化状態をチェック
+    var initCheckInterval = setInterval(function() {
+      checkInitialized();
+      if (isAppInitialized) {
+        clearInterval(initCheckInterval);
+        console.log('初期化チェック完了');
+      }
+    }, 500);
+    
     // 生年月日ピッカーを開く関数
     function openBirthdatePicker() {
       console.log('生年月日ピッカーを開きます');
@@ -850,6 +875,26 @@
     function openCalendarModal() {
       console.log('カレンダーモーダルを開きます');
       try {
+        checkInitialized(); // 直前に初期化状態を再チェック
+        
+        if (!isAppInitialized) {
+          console.log('初期化待機中...');
+          // 一時的にupdateCalendarを設定してエラーを回避
+          if (typeof updateCalendar !== 'function') {
+            // 一時的なダミー関数を設定
+            console.log('ダミー関数を設定します');
+            updateCalendar = function() { 
+              console.log('仮のupdateCalendar関数が呼び出されました');
+              alert('カレンダーデータがまだロードできていません。しばらくしてから再度お試しください。');
+              var modal = document.getElementById('calendar-modal');
+              if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+              }
+            };
+          }
+        }
+        
         var modal = document.getElementById('calendar-modal');
         if (modal) {
           console.log('モーダルが見つかりました');
@@ -954,9 +999,6 @@
       return false;
     }
     
-    // アプリケーション初期化状態を追跡するフラグ
-    var isAppInitialized = false;
-    
     // ページ読み込み完了時の処理
     window.onload = function() {
       console.log('ページ読み込み完了');
@@ -1006,12 +1048,7 @@
         addEventListeners(datetimeSelect, ['touchstart', 'touchend'], function(e) {
           e.preventDefault();
           setTimeout(function() {
-            // アプリが初期化されているか確認してからモーダルを開く
-            if (isAppInitialized) {
-              openCalendarModal();
-            } else {
-              alert('アプリケーションがまだ初期化中です。しばらくお待ちください。');
-            }
+            openCalendarModal();
           }, 10);
         });
       } else {
@@ -1091,7 +1128,7 @@
         }
         
         // Googleカレンダーから予定を取得
-        loadCalendarEvents = async function(date) {
+        window.loadCalendarEvents = loadCalendarEvents = async function(date) {
           console.log('loadCalendarEvents関数が呼び出されました');
           try {
             const timeMin = new Date(date);
@@ -1135,7 +1172,7 @@
         };
         
         // 時間枠が予約可能かチェック
-        checkTimeAvailability = function(events, date, time) {
+        window.checkTimeAvailability = checkTimeAvailability = function(events, date, time) {
           try {
             const [hours, minutes] = time.split(':');
             const slotTime = new Date(date);
@@ -1166,7 +1203,7 @@
         };
         
         // カレンダーの更新処理をグローバル関数として定義
-        updateCalendar = async function() {
+        window.updateCalendar = updateCalendar = async function() {
           console.log('updateCalendar関数が呼び出されました');
           try {
             const monthElement = document.getElementById('calendar-month');
@@ -1309,7 +1346,7 @@
         };
         
         // 時間枠選択処理をグローバル関数として定義
-        selectTimeSlot = function(time, date, cell) {
+        window.selectTimeSlot = selectTimeSlot = function(time, date, cell) {
           try {
             // 既存の選択をクリア
             document.querySelectorAll('.calendar-table .selected').forEach(slot => {
@@ -1356,9 +1393,10 @@
         // 初期化処理を実行
         await initializeLiff();
         
-        // 初期化完了フラグを設定
+        // 初期化完了フラグをウィンドウオブジェクトに直接設定
         window.isAppInitialized = true;
-        console.log('アプリケーション初期化完了');
+        isAppInitialized = true;
+        console.log('アプリケーション初期化完了！フラグがセットされました：', isAppInitialized);
       } catch (error) {
         console.error('アプリケーションの初期化に失敗しました:', error);
         alert('アプリケーションの初期化エラー: ' + error.message);
@@ -1367,6 +1405,8 @@
     
     // ページ読み込み完了時に初期化を実行
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOMが読み込まれました');
+      
       // アプリケーションの初期化を実行
       initializeApp().catch(error => {
         console.error('アプリケーションの初期化に失敗しました:', error);
