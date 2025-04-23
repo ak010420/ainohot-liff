@@ -50,7 +50,29 @@
       border-radius: 6px;
       font-size: 1rem;
       box-sizing: border-box;
+      transition: all 0.2s ease;
     }
+    
+    input[type="text"]:hover,
+    input[type="tel"]:hover,
+    input[type="date"]:hover,
+    input[type="datetime-local"]:hover,
+    textarea:hover,
+    select:hover {
+      border-color: #3498db;
+    }
+    
+    input[type="text"]:focus,
+    input[type="tel"]:focus,
+    input[type="date"]:focus,
+    input[type="datetime-local"]:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #2071E3;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(32, 113, 227, 0.2);
+    }
+    
     .radio-group,
     .checkbox-group {
       margin-top: 1.2rem;
@@ -197,6 +219,7 @@
       border: 1px solid #ddd;
       color: #666;
       padding: 0.5rem 0.7rem;
+      margin-top: 0;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8rem;
@@ -370,17 +393,19 @@
       background-color: #f9f9f9;
       cursor: pointer;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
+      gap: 0.5rem;
     }
     .datetime-display:hover {
       border-color: #3498db;
     }
     .datetime-display .calendar-icon {
       color: #3498db;
-      margin-left: 0.5rem;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
     }
     .icon-svg {
       fill: currentColor;
@@ -397,6 +422,23 @@
     }
     .datetime-display .empty-text {
       color: #999;
+    }
+
+    input[type="radio"],
+    input[type="checkbox"] {
+      margin-right: 0.4rem;
+      cursor: pointer;
+    }
+    
+    input[type="radio"] + label,
+    input[type="checkbox"] + label {
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    
+    input[type="radio"]:hover + label,
+    input[type="checkbox"]:hover + label {
+      color: #2071E3;
     }
   </style>
 </head>
@@ -438,12 +480,12 @@
       <div class="form-group">
         <label for="reservation_display">予約日時 *</label>
         <div id="datetime-select" class="datetime-display" onclick="openCalendarModal()">
-          <span id="datetime-text" class="empty-text">カレンダーで日時を選択する</span>
           <span class="calendar-icon">
             <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3H18V1H16V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V8H19V19Z"/>
             </svg>
           </span>
+          <span id="datetime-text" class="empty-text">カレンダーで日時を選択する</span>
         </div>
         <input type="hidden" id="reservation_datetime" name="reservation_datetime" required />
         <input type="hidden" name="entry.1608470188_year" id="year" />
