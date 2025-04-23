@@ -586,28 +586,16 @@
     
     /* モバイル向け調整 */
     @media (max-width: 480px) {
-      .date-input,
-      .datetime-display,
-      .birthdate-display {
-        height: 3.2rem;
-        font-size: 16px; /* モバイルでのズーム防止 */
-        padding: 0.8rem;
-      }
-      
-      .calendar-icon-wrapper {
-        right: 10px;
-      }
-      
-      .calendar-icon {
-        width: 18px;
-        height: 18px;
-      }
-      
       .modal-container {
         width: 95%;
         max-height: 80vh;
         padding: 1rem;
         margin: auto;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
       }
       
       .modal-title {
