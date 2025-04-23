@@ -851,9 +851,11 @@
           updateCalendar();
         } else {
           console.error('calendar-modalが見つかりません');
+          alert('エラー: calendar-modalが見つかりません');
         }
       } catch (e) {
         console.error('モーダルオープンエラー:', e);
+        alert('モーダルオープンエラー: ' + e.message);
       }
     }
     
@@ -948,6 +950,7 @@
         updateBirthdateDisplay();
       } else {
         console.error('生年月日フィールドが見つかりません');
+        alert('エラー: 生年月日フィールドが見つかりません');
       }
       
       // 追加のモバイル対応
@@ -963,6 +966,7 @@
         });
       } else {
         console.error('生年月日選択フィールドが見つかりません');
+        alert('エラー: 生年月日選択フィールドが見つかりません');
       }
       
       var datetimeSelect = document.getElementById('datetime-select');
@@ -977,6 +981,7 @@
         });
       } else {
         console.error('日時選択フィールドが見つかりません');
+        alert('エラー: 日時選択フィールドが見つかりません');
       }
       
       // カレンダーモーダルの閉じるボタン
@@ -989,6 +994,7 @@
         });
       } else {
         console.error('モーダルクローズボタンが見つかりません');
+        alert('エラー: モーダルクローズボタンが見つかりません');
       }
       
       // iframe load event
@@ -1002,6 +1008,7 @@
         };
       } else {
         console.error('hidden_iframeが見つかりません');
+        alert('エラー: hidden_iframeが見つかりません');
       }
     };
   </script>
