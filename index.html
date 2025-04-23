@@ -783,45 +783,31 @@
       "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
     ];
     
-    // グローバル関数の宣言（実装は後で）
-    var updateCalendar;
-    var selectTimeSlot;
-    var loadCalendarEvents;
-    var checkTimeAvailability;
+    // グローバル関数を直接定義
+    var updateCalendar = null;
+    var selectTimeSlot = null;
+    var loadCalendarEvents = null;
+    var checkTimeAvailability = null;
     
-    // アプリケーション初期化状態を追跡するフラグ
-    var isAppInitialized = false;
+    // アプリ設定
+    var config = {
+      liff: { id: '' },
+      googleCalendar: { calendarId: '', apiKey: '' }
+    };
     
-    // 初期化完了を検出するための関数
-    function checkInitialized() {
-      if (typeof updateCalendar === 'function' && 
-          typeof selectTimeSlot === 'function' && 
-          typeof loadCalendarEvents === 'function' && 
-          typeof checkTimeAvailability === 'function') {
-        isAppInitialized = true;
-        console.log('アプリケーション初期化の完了を検出しました');
-      } else {
-        console.log('まだ初期化が完了していません');
-      }
-    }
-    
-    // 定期的に初期化状態をチェック
-    var initCheckInterval = setInterval(function() {
-      checkInitialized();
-      if (isAppInitialized) {
-        clearInterval(initCheckInterval);
-        console.log('初期化チェック完了');
-      }
-    }, 500);
+    // アプリの状態管理
+    var appState = {
+      isInitialized: false,
+      isCalendarReady: false,
+      isLiffInitialized: false
+    };
     
     // 生年月日ピッカーを開く関数
     function openBirthdatePicker() {
-      console.log('生年月日ピッカーを開きます');
       try {
         var datePicker = document.getElementById('birthdate');
-        // モバイルで動作するようにdirectクリックをシミュレート
         if (datePicker) {
-          // モバイルの場合はclick()だけでは機能しないので、イベントをディスパッチ
+          // モバイルでの互換性のため
           var event;
           if (typeof(MouseEvent) === 'function') {
             event = new MouseEvent('click', {
@@ -841,17 +827,14 @@
           });
         } else {
           console.error('生年月日フィールドが見つかりません');
-          alert('エラー: 生年月日フィールドが見つかりません');
         }
       } catch (e) {
         console.error('生年月日ピッカーエラー:', e);
-        alert('生年月日ピッカーエラー: ' + e.message);
       }
     }
     
     // 生年月日表示を更新する関数
     function updateBirthdateDisplay() {
-      console.log('生年月日表示を更新します');
       var datePicker = document.getElementById('birthdate');
       var birthdateText = document.getElementById('birthdate-text');
       
@@ -873,56 +856,54 @@
     
     // カレンダーモーダルを開く関数
     function openCalendarModal() {
-      console.log('カレンダーモーダルを開きます');
       try {
-        checkInitialized(); // 直前に初期化状態を再チェック
-        
-        if (!isAppInitialized) {
-          console.log('初期化待機中...');
-          // 一時的にupdateCalendarを設定してエラーを回避
-          if (typeof updateCalendar !== 'function') {
-            // 一時的なダミー関数を設定
-            console.log('ダミー関数を設定します');
-            updateCalendar = function() { 
-              console.log('仮のupdateCalendar関数が呼び出されました');
-              alert('カレンダーデータがまだロードできていません。しばらくしてから再度お試しください。');
-              var modal = document.getElementById('calendar-modal');
-              if (modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-              }
-            };
-          }
+        var modal = document.getElementById('calendar-modal');
+        if (!modal) {
+          console.error('カレンダーモーダルが見つかりません');
+          return;
         }
         
-        var modal = document.getElementById('calendar-modal');
-        if (modal) {
-          console.log('モーダルが見つかりました');
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden'; // スクロール無効化
-          
-          // updateCalendarが定義されているか確認
-          if (typeof updateCalendar === 'function') {
-            console.log('updateCalendar関数を呼び出します');
-            // モーダルを開いたときにカレンダーを更新
-            updateCalendar();
-          } else {
-            console.error('updateCalendar関数が定義されていません');
-            alert('エラー: updateCalendar関数が見つかりません。ページを再読み込みしてください。');
-          }
+        // モーダルを表示
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; // スクロール無効化
+        
+        // カレンダーが初期化されているか確認
+        if (appState.isCalendarReady && typeof updateCalendar === 'function') {
+          console.log('カレンダーを更新します');
+          updateCalendar();
         } else {
-          console.error('calendar-modalが見つかりません');
-          alert('エラー: calendar-modalが見つかりません');
+          console.log('カレンダーがまだ初期化されていません');
+          
+          // カレンダーテーブルに「読み込み中...」メッセージを表示
+          var container = document.getElementById('calendar-table-container');
+          if (container) {
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">カレンダーを読み込み中です...<br>少々お待ちください</div>';
+          }
+          
+          // カレンダー初期化を試みる
+          initializeCalendarFunctions();
+          
+          // 少し待ってから更新を試みる
+          setTimeout(function() {
+            if (typeof updateCalendar === 'function') {
+              console.log('遅延ロード - カレンダーを更新します');
+              updateCalendar();
+            } else {
+              console.error('カレンダー初期化に失敗しました');
+              var container = document.getElementById('calendar-table-container');
+              if (container) {
+                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #c00;">カレンダーの読み込みに失敗しました<br>ページを再読み込みしてください</div>';
+              }
+            }
+          }, 1000);
         }
       } catch (e) {
         console.error('モーダルオープンエラー:', e);
-        alert('モーダルオープンエラー: ' + e.message);
       }
     }
     
     // カレンダーモーダルを閉じる関数
     function closeCalendarModal() {
-      console.log('カレンダーモーダルを閉じます');
       try {
         var modal = document.getElementById('calendar-modal');
         if (modal) {
@@ -931,7 +912,6 @@
         }
       } catch (e) {
         console.error('モーダルクローズエラー:', e);
-        alert('モーダルクローズエラー: ' + e.message);
       }
     }
     
@@ -940,9 +920,6 @@
       currentDate.setDate(currentDate.getDate() - 7);
       if (typeof updateCalendar === 'function') {
         updateCalendar();
-      } else {
-        console.error('updateCalendar関数が定義されていません');
-        alert('エラー: updateCalendar関数が見つかりません');
       }
     }
 
@@ -951,9 +928,6 @@
       currentDate.setDate(currentDate.getDate() + 7);
       if (typeof updateCalendar === 'function') {
         updateCalendar();
-      } else {
-        console.error('updateCalendar関数が定義されていません');
-        alert('エラー: updateCalendar関数が見つかりません');
       }
     }
     
@@ -986,9 +960,7 @@
       submitted = true;
 
       try {
-        console.log('フォーム送信開始');
         form.submit();
-        console.log('フォーム送信完了');
       } catch (error) {
         console.error('送信処理エラー:', error);
         alert('送信中にエラーが発生しました。もう一度お試しください。');
@@ -999,180 +971,61 @@
       return false;
     }
     
-    // ページ読み込み完了時の処理
-    window.onload = function() {
-      console.log('ページ読み込み完了');
+    // カレンダー機能の初期化
+    function initializeCalendarFunctions() {
+      console.log('カレンダー機能を初期化します');
       
-      // 生年月日フィールドの初期設定
-      var today = new Date();
-      var defaultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-      var formattedDate = defaultDate.getFullYear() + '-' + 
-                         String(defaultDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                         String(defaultDate.getDate()).padStart(2, '0');
-      
-      var birthdateField = document.getElementById('birthdate');
-      if (birthdateField) {
-        console.log('生年月日フィールドが見つかりました');
-        birthdateField.max = today.getFullYear() + '-' + 
-                            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                            String(today.getDate()).padStart(2, '0');
-        birthdateField.value = formattedDate;
-        
-        // 生年月日表示を初期化
-        updateBirthdateDisplay();
-      } else {
-        console.error('生年月日フィールドが見つかりません');
-        alert('エラー: 生年月日フィールドが見つかりません');
-      }
-      
-      // 追加のモバイル対応
-      var birthdateSelect = document.getElementById('birthdate-select');
-      if (birthdateSelect) {
-        console.log('生年月日選択フィールドが見つかりました');
-        // タッチデバイス用の追加イベント（fastclickを考慮）
-        addEventListeners(birthdateSelect, ['touchstart', 'touchend'], function(e) {
-          e.preventDefault();
-          setTimeout(function() {
-            openBirthdatePicker();
-          }, 10);
-        });
-      } else {
-        console.error('生年月日選択フィールドが見つかりません');
-        alert('エラー: 生年月日選択フィールドが見つかりません');
-      }
-      
-      var datetimeSelect = document.getElementById('datetime-select');
-      if (datetimeSelect) {
-        console.log('日時選択フィールドが見つかりました');
-        // タッチデバイス用の追加イベント
-        addEventListeners(datetimeSelect, ['touchstart', 'touchend'], function(e) {
-          e.preventDefault();
-          setTimeout(function() {
-            openCalendarModal();
-          }, 10);
-        });
-      } else {
-        console.error('日時選択フィールドが見つかりません');
-        alert('エラー: 日時選択フィールドが見つかりません');
-      }
-      
-      // カレンダーモーダルの閉じるボタン
-      var modalCloseBtn = document.querySelector('.modal-close');
-      if (modalCloseBtn) {
-        console.log('モーダルクローズボタンが見つかりました');
-        addEventListeners(modalCloseBtn, ['click', 'touchend'], function(e) {
-          e.preventDefault();
-          closeCalendarModal();
-        });
-      } else {
-        console.error('モーダルクローズボタンが見つかりません');
-        alert('エラー: モーダルクローズボタンが見つかりません');
-      }
-      
-      // iframe load event
-      var hiddenIframe = document.getElementById('hidden_iframe');
-      if (hiddenIframe) {
-        console.log('hidden_iframeが見つかりました');
-        hiddenIframe.onload = function() {
-          if (submitted) {
-            window.location.href = 'thanks.html';
-          }
-        };
-      } else {
-        console.error('hidden_iframeが見つかりません');
-        alert('エラー: hidden_iframeが見つかりません');
-      }
-    };
-  </script>
-  
-  <script type="module">
-    import configPromise from './config.js';
-    
-    async function initializeApp() {
       try {
-        console.log('アプリケーション初期化開始');
-        const config = await configPromise;
-        
-        let liffId = config.liff.id;
-        let isLiffInitialized = false;
-        
-        const CALENDAR_ID = config.googleCalendar.calendarId;
-        const API_KEY = config.googleCalendar.apiKey;
-        
-        // LIFF初期化
-        async function initializeLiff() {
-          if (isLiffInitialized) return;
-          
-          try {
-            console.log('LIFF初期化開始');
-            await liff.init({ 
-              liffId: liffId,
-              withLoginOnExternalBrowser: true
-            });
-            console.log('LIFF初期化成功');
-            isLiffInitialized = true;
-
-            if (!liff.isLoggedIn()) {
-              console.log('未ログイン状態です。ログインを開始します。');
-              liff.login();
-            } else {
-              console.log('ログイン済みです。プロフィールを取得します。');
-              const profile = await liff.getProfile();
-              console.log('プロフィール取得成功:', profile);
-              document.getElementById('lineUserId').value = profile.userId;
-            }
-          } catch (error) {
-            console.error('LIFF初期化エラー:', error);
-            alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
-          }
+        if (!config || !config.googleCalendar || !config.googleCalendar.apiKey) {
+          console.error('設定が読み込まれていません');
+          return false;
         }
         
-        // Googleカレンダーから予定を取得
-        window.loadCalendarEvents = loadCalendarEvents = async function(date) {
-          console.log('loadCalendarEvents関数が呼び出されました');
+        // Googleカレンダーから予定を取得する関数
+        loadCalendarEvents = async function(date) {
           try {
+            if (!window.gapi) {
+              console.error('Google APIがロードされていません');
+              return [];
+            }
+            
             const timeMin = new Date(date);
             timeMin.setHours(9, 30, 0, 0);
             
             const timeMax = new Date(date);
             timeMax.setHours(16, 0, 0, 0);
 
-            await new Promise((resolve, reject) => {
-              if (typeof gapi === 'undefined') {
-                reject(new Error('Google APIがロードされていません'));
-                return;
-              }
-              
+            return new Promise((resolve) => {
               gapi.load('client', async () => {
                 try {
                   await gapi.client.init({
-                    apiKey: API_KEY,
+                    apiKey: config.googleCalendar.apiKey,
                     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
                   });
-                  resolve();
+
+                  const response = await gapi.client.calendar.events.list({
+                    'calendarId': config.googleCalendar.calendarId,
+                    'timeMin': timeMin.toISOString(),
+                    'timeMax': timeMax.toISOString(),
+                    'singleEvents': true,
+                    'orderBy': 'startTime'
+                  });
+
+                  resolve(response.result.items || []);
                 } catch (error) {
-                  reject(error);
+                  console.error('カレンダーAPI通信エラー:', error);
+                  resolve([]);
                 }
               });
             });
-
-            const response = await gapi.client.calendar.events.list({
-              'calendarId': CALENDAR_ID,
-              'timeMin': timeMin.toISOString(),
-              'timeMax': timeMax.toISOString(),
-              'singleEvents': true,
-              'orderBy': 'startTime'
-            });
-
-            return response.result.items;
           } catch (error) {
-            console.error('Googleカレンダーの読み込みに失敗しました:', error);
+            console.error('イベント読み込みエラー:', error);
             return [];
           }
         };
         
-        // 時間枠が予約可能かチェック
-        window.checkTimeAvailability = checkTimeAvailability = function(events, date, time) {
+        // 時間枠が予約可能かチェックする関数
+        checkTimeAvailability = function(events, date, time) {
           try {
             const [hours, minutes] = time.split(':');
             const slotTime = new Date(date);
@@ -1180,8 +1033,12 @@
             
             const slotEndTime = new Date(slotTime.getTime() + 90 * 60000); // 90分
             
-            if (events) {
+            if (events && events.length > 0) {
               for (const event of events) {
+                if (!event.start || !event.start.dateTime || !event.end || !event.end.dateTime) {
+                  continue;
+                }
+                
                 const startTime = new Date(event.start.dateTime);
                 const endTime = new Date(event.end.dateTime);
                 
@@ -1202,18 +1059,19 @@
           }
         };
         
-        // カレンダーの更新処理をグローバル関数として定義
-        window.updateCalendar = updateCalendar = async function() {
-          console.log('updateCalendar関数が呼び出されました');
+        // カレンダーの更新処理
+        updateCalendar = async function() {
           try {
             const monthElement = document.getElementById('calendar-month');
             const calendarContainer = document.getElementById('calendar-table-container');
             
             if (!monthElement || !calendarContainer) {
               console.error('カレンダー要素が見つかりません');
-              alert('エラー: カレンダー要素が見つかりません');
               return;
             }
+            
+            // データ読み込み中の表示
+            calendarContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">カレンダーを読み込み中です...<br>少々お待ちください</div>';
             
             // 日本の祝日データ（例として）
             const holidays = {
@@ -1271,82 +1129,67 @@
             
             table.appendChild(headerRow);
             
+            // Googleカレンダーから予定を取得
+            let events = [];
             try {
-              // Googleカレンダーから予定を取得
-              const events = await loadCalendarEvents(currentDate);
-              
-              // 時間枠ごとの行を生成
-              timeSlots.forEach(time => {
-                const row = document.createElement('tr');
-                
-                // 時間ラベル
-                const timeCell = document.createElement('td');
-                timeCell.className = 'time-label';
-                timeCell.textContent = time;
-                row.appendChild(timeCell);
-                
-                // 各日の予約状況
-                twoWeeksDate.forEach((date, index) => {
-                  const cell = document.createElement('td');
-                  cell.className = index >= 7 ? 'week2' : 'week1';
-                  
-                  // この時間が予約可能かチェック
-                  const isAvailable = checkTimeAvailability(events, date, time);
-                  
-                  if (isAvailable) {
-                    cell.classList.add('available');
-                    cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
-                  } else {
-                    cell.classList.add('unavailable');
-                  }
-                  
-                  row.appendChild(cell);
-                });
-                
-                table.appendChild(row);
-              });
-              
+              events = await loadCalendarEvents(currentDate);
             } catch (error) {
               console.error('カレンダーの更新に失敗しました:', error);
-              alert('カレンダーの更新エラー: ' + error.message);
-              
-              // エラー時も時間枠ごとの行を生成（すべて利用可能として表示）
-              timeSlots.forEach(time => {
-                const row = document.createElement('tr');
-                
-                // 時間ラベル
-                const timeCell = document.createElement('td');
-                timeCell.className = 'time-label';
-                timeCell.textContent = time;
-                row.appendChild(timeCell);
-                
-                // 各日の予約状況
-                twoWeeksDate.forEach((date, index) => {
-                  const cell = document.createElement('td');
-                  cell.className = index >= 7 ? 'week2' : 'week1';
-                  
-                  // エラー時はすべて予約可能として表示
-                  cell.classList.add('available');
-                  cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
-                  
-                  row.appendChild(cell);
-                });
-                
-                table.appendChild(row);
-              });
             }
+            
+            // 時間枠ごとの行を生成
+            timeSlots.forEach(time => {
+              const row = document.createElement('tr');
+              
+              // 時間ラベル
+              const timeCell = document.createElement('td');
+              timeCell.className = 'time-label';
+              timeCell.textContent = time;
+              row.appendChild(timeCell);
+              
+              // 各日の予約状況
+              twoWeeksDate.forEach((date, index) => {
+                const cell = document.createElement('td');
+                cell.className = index >= 7 ? 'week2' : 'week1';
+                
+                // この時間が予約可能かチェック
+                const isAvailable = checkTimeAvailability(events, date, time);
+                
+                if (isAvailable) {
+                  cell.classList.add('available');
+                  cell.addEventListener('click', () => {
+                    if (typeof selectTimeSlot === 'function') {
+                      selectTimeSlot(time, date, cell);
+                    }
+                  });
+                } else {
+                  cell.classList.add('unavailable');
+                }
+                
+                row.appendChild(cell);
+              });
+              
+              table.appendChild(row);
+            });
             
             // 古いテーブルを削除して新しいテーブルを追加
             calendarContainer.innerHTML = '';
             calendarContainer.appendChild(table);
+            
+            // カレンダー準備完了
+            appState.isCalendarReady = true;
           } catch (e) {
             console.error('updateCalendarエラー:', e);
-            alert('updateCalendarエラー: ' + e.message);
+            
+            const calendarContainer = document.getElementById('calendar-table-container');
+            if (calendarContainer) {
+              calendarContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: #c00;">カレンダーの表示中にエラーが発生しました<br>ページを再読み込みしてください</div>';
+            }
           }
         };
         
-        // 時間枠選択処理をグローバル関数として定義
-        window.selectTimeSlot = selectTimeSlot = function(time, date, cell) {
+        // 時間枠選択処理
+        selectTimeSlot = function(time, date, cell) {
           try {
             // 既存の選択をクリア
             document.querySelectorAll('.calendar-table .selected').forEach(slot => {
@@ -1386,33 +1229,142 @@
             }, 300);
           } catch (e) {
             console.error('時間枠選択エラー:', e);
-            alert('時間枠選択エラー: ' + e.message);
           }
         };
         
-        // 初期化処理を実行
-        await initializeLiff();
-        
-        // 初期化完了フラグをウィンドウオブジェクトに直接設定
-        window.isAppInitialized = true;
-        isAppInitialized = true;
-        console.log('アプリケーション初期化完了！フラグがセットされました：', isAppInitialized);
+        return true;
       } catch (error) {
-        console.error('アプリケーションの初期化に失敗しました:', error);
-        alert('アプリケーションの初期化エラー: ' + error.message);
+        console.error('カレンダー機能の初期化に失敗しました:', error);
+        return false;
       }
     }
     
-    // ページ読み込み完了時に初期化を実行
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOMが読み込まれました');
+    // ページ読み込み完了時の処理
+    window.onload = function() {
+      console.log('ページ読み込み完了');
       
-      // アプリケーションの初期化を実行
-      initializeApp().catch(error => {
-        console.error('アプリケーションの初期化に失敗しました:', error);
-        alert('アプリケーションの初期化エラー: ' + error.message);
-      });
+      // 生年月日フィールドの初期設定
+      var today = new Date();
+      var defaultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      var formattedDate = defaultDate.getFullYear() + '-' + 
+                         String(defaultDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(defaultDate.getDate()).padStart(2, '0');
+      
+      var birthdateField = document.getElementById('birthdate');
+      if (birthdateField) {
+        birthdateField.max = today.getFullYear() + '-' + 
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(today.getDate()).padStart(2, '0');
+        birthdateField.value = formattedDate;
+        
+        // 生年月日表示を初期化
+        updateBirthdateDisplay();
+      }
+      
+      // イベントリスナー設定
+      var birthdateSelect = document.getElementById('birthdate-select');
+      if (birthdateSelect) {
+        addEventListeners(birthdateSelect, ['click', 'touchstart', 'touchend'], function(e) {
+          e.preventDefault();
+          setTimeout(function() {
+            openBirthdatePicker();
+          }, 10);
+        });
+      }
+      
+      var datetimeSelect = document.getElementById('datetime-select');
+      if (datetimeSelect) {
+        addEventListeners(datetimeSelect, ['click', 'touchstart', 'touchend'], function(e) {
+          e.preventDefault();
+          setTimeout(function() {
+            openCalendarModal();
+          }, 10);
+        });
+      }
+      
+      // カレンダーモーダルの閉じるボタン
+      var modalCloseBtn = document.querySelector('.modal-close');
+      if (modalCloseBtn) {
+        addEventListeners(modalCloseBtn, ['click', 'touchend'], function(e) {
+          e.preventDefault();
+          closeCalendarModal();
+        });
+      }
+      
+      // iframe load event
+      var hiddenIframe = document.getElementById('hidden_iframe');
+      if (hiddenIframe) {
+        hiddenIframe.onload = function() {
+          if (submitted) {
+            window.location.href = 'thanks.html';
+          }
+        };
+      }
+    };
+    
+    // ページ読み込み時にモジュールをロード
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOMContentLoadedイベント発火');
+      
+      // 設定ファイルをロード
+      fetch('./config.js')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('設定ファイルのロードに失敗しました');
+          }
+          return response.text();
+        })
+        .then(text => {
+          // モジュールからJSONを抽出する簡易的な方法
+          try {
+            const jsonStr = text.match(/export\s+default\s+({[\s\S]*?});/)[1];
+            config = JSON.parse(jsonStr.replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":'));
+            console.log('設定をロードしました', config);
+            
+            // カレンダー機能を初期化
+            initializeCalendarFunctions();
+            
+            // LINE LIFF初期化
+            initializeLiff();
+          } catch (error) {
+            console.error('設定の解析に失敗しました:', error);
+          }
+        })
+        .catch(error => {
+          console.error('設定ロードエラー:', error);
+        });
     });
+    
+    // LINE LIFF初期化
+    async function initializeLiff() {
+      try {
+        if (!config || !config.liff || !config.liff.id) {
+          console.error('LIFF設定が読み込まれていません');
+          return;
+        }
+        
+        if (!window.liff) {
+          console.error('LIFF SDKが読み込まれていません');
+          return;
+        }
+        
+        await liff.init({ 
+          liffId: config.liff.id,
+          withLoginOnExternalBrowser: true
+        });
+        
+        appState.isLiffInitialized = true;
+        
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        } else {
+          const profile = await liff.getProfile();
+          document.getElementById('lineUserId').value = profile.userId;
+        }
+      } catch (error) {
+        console.error('LIFF初期化エラー:', error);
+      }
+    }
   </script>
 </body>
 </html> 
