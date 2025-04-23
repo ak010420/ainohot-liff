@@ -8,8 +8,7 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://apis.google.com/js/api.js"></script>
   <script type="module">
-    import config from './config.js';
-    var submitted = false;
+    import configPromise from './config.js';
   </script>
   <style>
     body {
@@ -275,236 +274,243 @@
   <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
   <script type="module">
-    import config from './config.js';
+    import configPromise from './config.js';
     
-    let liffId = config.liff.id;
-    let isLiffInitialized = false;
-    let formSubmitted = false;
-
-    // iframe load eventの追加
-    document.getElementById('hidden_iframe').onload = function() {
-      if (formSubmitted) {
-        window.location.href = 'thanks.html';
-      }
-    };
-
-    async function initializeLiff() {
-      if (isLiffInitialized) return;
+    async function initializeApp() {
+      const config = await configPromise;
+      var submitted = false;
       
-      try {
-        console.log('LIFF初期化開始');
-        await liff.init({ 
-          liffId: liffId,
-          withLoginOnExternalBrowser: true
+      let liffId = config.liff.id;
+      let isLiffInitialized = false;
+      let formSubmitted = false;
+      
+      const CALENDAR_ID = config.googleCalendar.calendarId;
+      const API_KEY = config.googleCalendar.apiKey;
+      
+      // iframe load eventの追加
+      document.getElementById('hidden_iframe').onload = function() {
+        if (formSubmitted) {
+          window.location.href = 'thanks.html';
+        }
+      };
+
+      async function initializeLiff() {
+        if (isLiffInitialized) return;
+        
+        try {
+          console.log('LIFF初期化開始');
+          await liff.init({ 
+            liffId: liffId,
+            withLoginOnExternalBrowser: true
+          });
+          console.log('LIFF初期化成功');
+          isLiffInitialized = true;
+
+          if (!liff.isLoggedIn()) {
+            console.log('未ログイン状態です。ログインを開始します。');
+            liff.login();
+          } else {
+            console.log('ログイン済みです。プロフィールを取得します。');
+            const profile = await liff.getProfile();
+            console.log('プロフィール取得成功:', profile);
+            document.getElementById('lineUserId').value = profile.userId;
+          }
+        } catch (error) {
+          console.error('LIFF初期化エラー:', error);
+          alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
+        }
+      }
+
+      // カレンダー関連の関数
+      let currentDate = new Date();
+      const timeSlots = [
+        "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
+        "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
+      ];
+
+      // 利用可能な時間枠を計算
+      function calculateAvailableTimeSlots(events, date) {
+        const availableSlots = [...timeSlots];
+        const duration = 90; // 90分（1時間30分）
+
+        if (events) {
+          events.forEach(event => {
+            const startTime = new Date(event.start.dateTime);
+            const endTime = new Date(event.end.dateTime);
+            
+            availableSlots.forEach((slot, index) => {
+              const [hours, minutes] = slot.split(':');
+              const slotTime = new Date(date);
+              slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+              
+              const slotEndTime = new Date(slotTime.getTime() + duration * 60000);
+              
+              if (
+                (slotTime >= startTime && slotTime < endTime) ||
+                (slotEndTime > startTime && slotEndTime <= endTime) ||
+                (slotTime <= startTime && slotEndTime >= endTime)
+              ) {
+                availableSlots[index] = null;
+              }
+            });
+          });
+        }
+        
+        return availableSlots.filter(slot => slot !== null);
+      }
+
+      // Googleカレンダーから予定を取得
+      async function loadCalendarEvents(date) {
+        const timeMin = new Date(date);
+        timeMin.setHours(9, 30, 0, 0);
+        
+        const timeMax = new Date(date);
+        timeMax.setHours(16, 0, 0, 0);
+
+        try {
+          const response = await gapi.client.calendar.events.list({
+            'calendarId': CALENDAR_ID,
+            'timeMin': timeMin.toISOString(),
+            'timeMax': timeMax.toISOString(),
+            'singleEvents': true,
+            'orderBy': 'startTime'
+          });
+
+          const events = response.result.items;
+          return events;
+        } catch (error) {
+          console.error('Error loading calendar events:', error);
+          return [];
+        }
+      }
+
+      // カレンダーの更新処理を修正
+      async function updateCalendar() {
+        const monthElement = document.getElementById('calendar-month');
+        monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
+        
+        // Googleカレンダーから予定を取得
+        const events = await loadCalendarEvents(currentDate);
+        const availableSlots = calculateAvailableTimeSlots(events, currentDate);
+        
+        // 時間枠の生成
+        const timeSlotsContainer = document.getElementById('time-slots');
+        timeSlotsContainer.innerHTML = '';
+        
+        availableSlots.forEach(time => {
+          const slot = document.createElement('button');
+          slot.type = 'button';
+          slot.className = 'time-slot';
+          slot.textContent = time;
+          slot.onclick = () => selectTimeSlot(time);
+          timeSlotsContainer.appendChild(slot);
         });
-        console.log('LIFF初期化成功');
-        isLiffInitialized = true;
+      }
+
+      // Google Calendar APIの初期化
+      function initializeGoogleCalendar() {
+        gapi.client.init({
+          'apiKey': API_KEY,
+          'discoveryDocs': ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+        }).then(() => {
+          updateCalendar();
+        }).catch(error => {
+          console.error('Error initializing Google Calendar API:', error);
+        });
+      }
+
+      // 初期化処理を修正
+      window.addEventListener('load', () => {
+        console.log('ページ読み込み完了');
+        initializeLiff();
+        gapi.load('client', initializeGoogleCalendar);
+      });
+
+      function selectTimeSlot(time) {
+        // 既存の選択をクリア
+        document.querySelectorAll('.time-slot').forEach(slot => {
+          slot.classList.remove('selected');
+        });
+        
+        // 新しい選択を適用
+        event.target.classList.add('selected');
+        
+        // 日時データの更新
+        const [hours, minutes] = time.split(':');
+        const selectedDate = new Date(currentDate);
+        selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        document.getElementById('reservation_datetime').value = selectedDate.toISOString();
+        document.getElementById('year').value = selectedDate.getFullYear();
+        document.getElementById('month').value = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+        document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
+        document.getElementById('hour').value = hours;
+        document.getElementById('minute').value = minutes;
+      }
+
+      // イベントリスナーの設定
+      document.getElementById('prev-week').onclick = () => {
+        currentDate.setDate(currentDate.getDate() - 7);
+        updateCalendar();
+      };
+
+      document.getElementById('next-week').onclick = () => {
+        currentDate.setDate(currentDate.getDate() + 7);
+        updateCalendar();
+      };
+
+      async function handleSubmit(event) {
+        event.preventDefault();
+        
+        if (formSubmitted) {
+          return false;
+        }
+
+        if (!isLiffInitialized) {
+          alert('LINEログインの初期化が完了していません。しばらく待ってから再度お試しください。');
+          return false;
+        }
 
         if (!liff.isLoggedIn()) {
-          console.log('未ログイン状態です。ログインを開始します。');
+          console.log('送信時ログイン確認: 未ログイン');
+          alert('LINEログインが必要です');
           liff.login();
-        } else {
-          console.log('ログイン済みです。プロフィールを取得します。');
-          const profile = await liff.getProfile();
-          console.log('プロフィール取得成功:', profile);
-          document.getElementById('lineUserId').value = profile.userId;
+          return false;
         }
-      } catch (error) {
-        console.error('LIFF初期化エラー:', error);
-        alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
-      }
-    }
 
-    // カレンダー関連の関数
-    let currentDate = new Date();
-    const timeSlots = [
-      "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
-      "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
-    ];
+        const form = document.getElementById('reservationForm');
+        
+        if (!form.checkValidity()) {
+          alert('必須項目を入力してください。');
+          return false;
+        }
 
-    const CALENDAR_ID = config.googleCalendar.calendarId;
-    const API_KEY = config.googleCalendar.apiKey;
+        const checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
+        if (checkboxes.length === 0) {
+          alert('AINOHOTを知ったきっかけを1つ以上選択してください。');
+          return false;
+        }
 
-    // 利用可能な時間枠を計算
-    function calculateAvailableTimeSlots(events, date) {
-      const availableSlots = [...timeSlots];
-      const duration = 90; // 90分（1時間30分）
+        const submitButton = document.getElementById('submitButton');
+        submitButton.disabled = true;
+        formSubmitted = true;
 
-      if (events) {
-        events.forEach(event => {
-          const startTime = new Date(event.start.dateTime);
-          const endTime = new Date(event.end.dateTime);
-          
-          availableSlots.forEach((slot, index) => {
-            const [hours, minutes] = slot.split(':');
-            const slotTime = new Date(date);
-            slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-            
-            const slotEndTime = new Date(slotTime.getTime() + duration * 60000);
-            
-            if (
-              (slotTime >= startTime && slotTime < endTime) ||
-              (slotEndTime > startTime && slotEndTime <= endTime) ||
-              (slotTime <= startTime && slotEndTime >= endTime)
-            ) {
-              availableSlots[index] = null;
-            }
-          });
-        });
-      }
-      
-      return availableSlots.filter(slot => slot !== null);
-    }
+        try {
+          console.log('フォーム送信開始');
+          form.submit();
+          console.log('フォーム送信完了');
+        } catch (error) {
+          console.error('送信処理エラー:', error);
+          alert('送信中にエラーが発生しました。もう一度お試しください。');
+          submitButton.disabled = false;
+          formSubmitted = false;
+        }
 
-    // Googleカレンダーから予定を取得
-    async function loadCalendarEvents(date) {
-      const timeMin = new Date(date);
-      timeMin.setHours(9, 30, 0, 0);
-      
-      const timeMax = new Date(date);
-      timeMax.setHours(16, 0, 0, 0);
-
-      try {
-        const response = await gapi.client.calendar.events.list({
-          'calendarId': CALENDAR_ID,
-          'timeMin': timeMin.toISOString(),
-          'timeMax': timeMax.toISOString(),
-          'singleEvents': true,
-          'orderBy': 'startTime'
-        });
-
-        const events = response.result.items;
-        return events;
-      } catch (error) {
-        console.error('Error loading calendar events:', error);
-        return [];
-      }
-    }
-
-    // カレンダーの更新処理を修正
-    async function updateCalendar() {
-      const monthElement = document.getElementById('calendar-month');
-      monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
-      
-      // Googleカレンダーから予定を取得
-      const events = await loadCalendarEvents(currentDate);
-      const availableSlots = calculateAvailableTimeSlots(events, currentDate);
-      
-      // 時間枠の生成
-      const timeSlotsContainer = document.getElementById('time-slots');
-      timeSlotsContainer.innerHTML = '';
-      
-      availableSlots.forEach(time => {
-        const slot = document.createElement('button');
-        slot.type = 'button';
-        slot.className = 'time-slot';
-        slot.textContent = time;
-        slot.onclick = () => selectTimeSlot(time);
-        timeSlotsContainer.appendChild(slot);
-      });
-    }
-
-    // Google Calendar APIの初期化
-    function initializeGoogleCalendar() {
-      gapi.client.init({
-        'apiKey': API_KEY,
-        'discoveryDocs': ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-      }).then(() => {
-        updateCalendar();
-      }).catch(error => {
-        console.error('Error initializing Google Calendar API:', error);
-      });
-    }
-
-    // 初期化処理を修正
-    window.addEventListener('load', () => {
-      console.log('ページ読み込み完了');
-      initializeLiff();
-      gapi.load('client', initializeGoogleCalendar);
-    });
-
-    function selectTimeSlot(time) {
-      // 既存の選択をクリア
-      document.querySelectorAll('.time-slot').forEach(slot => {
-        slot.classList.remove('selected');
-      });
-      
-      // 新しい選択を適用
-      event.target.classList.add('selected');
-      
-      // 日時データの更新
-      const [hours, minutes] = time.split(':');
-      const selectedDate = new Date(currentDate);
-      selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      
-      document.getElementById('reservation_datetime').value = selectedDate.toISOString();
-      document.getElementById('year').value = selectedDate.getFullYear();
-      document.getElementById('month').value = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
-      document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
-      document.getElementById('hour').value = hours;
-      document.getElementById('minute').value = minutes;
-    }
-
-    // イベントリスナーの設定
-    document.getElementById('prev-week').onclick = () => {
-      currentDate.setDate(currentDate.getDate() - 7);
-      updateCalendar();
-    };
-
-    document.getElementById('next-week').onclick = () => {
-      currentDate.setDate(currentDate.getDate() + 7);
-      updateCalendar();
-    };
-
-    async function handleSubmit(event) {
-      event.preventDefault();
-      
-      if (formSubmitted) {
         return false;
       }
-
-      if (!isLiffInitialized) {
-        alert('LINEログインの初期化が完了していません。しばらく待ってから再度お試しください。');
-        return false;
-      }
-
-      if (!liff.isLoggedIn()) {
-        console.log('送信時ログイン確認: 未ログイン');
-        alert('LINEログインが必要です');
-        liff.login();
-        return false;
-      }
-
-      const form = document.getElementById('reservationForm');
-      
-      if (!form.checkValidity()) {
-        alert('必須項目を入力してください。');
-        return false;
-      }
-
-      const checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
-      if (checkboxes.length === 0) {
-        alert('AINOHOTを知ったきっかけを1つ以上選択してください。');
-        return false;
-      }
-
-      const submitButton = document.getElementById('submitButton');
-      submitButton.disabled = true;
-      formSubmitted = true;
-
-      try {
-        console.log('フォーム送信開始');
-        form.submit();
-        console.log('フォーム送信完了');
-      } catch (error) {
-        console.error('送信処理エラー:', error);
-        alert('送信中にエラーが発生しました。もう一度お試しください。');
-        submitButton.disabled = false;
-        formSubmitted = false;
-      }
-
-      return false;
     }
+    
+    initializeApp();
   </script>
 </body>
 </html> 

@@ -1,12 +1,25 @@
-// 環境変数の設定
-const config = {
+// デフォルト設定
+const defaultConfig = {
   liff: {
-    id: process.env.LIFF_ID || '2006782211-8153KyzZ', // デフォルト値はフォールバック用
+    id: '2006782211-8153KyzZ',
   },
   googleCalendar: {
-    apiKey: process.env.GOOGLE_CALENDAR_API_KEY,
-    calendarId: process.env.GOOGLE_CALENDAR_ID || 'ainohot@aino-miya.com',
+    apiKey: 'AIzaSyCaTKN_tsSB5dEjhpLFods5FLd3GVhoQj4',
+    calendarId: 'ainohot@aino-miya.com',
   }
 };
 
-export default config; 
+// 設定を取得する関数
+async function getConfig() {
+  try {
+    const response = await fetch('/api/config');
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (error) {
+    console.error('設定の取得に失敗しました:', error);
+  }
+  return defaultConfig;
+}
+
+export default await getConfig(); 
