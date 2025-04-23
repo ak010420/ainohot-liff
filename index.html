@@ -294,6 +294,77 @@
         }
       };
 
+      // 現在の日付を保持
+      let currentDate = new Date();
+      
+      // 利用可能な時間枠
+      const timeSlots = [
+        "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
+        "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
+      ];
+
+      // カレンダーの更新処理
+      async function updateCalendar() {
+        const monthElement = document.getElementById('calendar-month');
+        monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
+        
+        try {
+          // Googleカレンダーから予定を取得
+          const events = await loadCalendarEvents(currentDate);
+          const availableSlots = calculateAvailableTimeSlots(events, currentDate);
+          
+          // 時間枠の生成
+          const timeSlotsContainer = document.getElementById('time-slots');
+          timeSlotsContainer.innerHTML = '';
+          
+          timeSlots.forEach(time => {
+            const slot = document.createElement('button');
+            slot.type = 'button';
+            slot.className = 'time-slot';
+            slot.textContent = time;
+            slot.onclick = () => selectTimeSlot(time);
+            timeSlotsContainer.appendChild(slot);
+          });
+        } catch (error) {
+          console.error('カレンダーの更新に失敗しました:', error);
+        }
+      }
+
+      // 時間枠選択処理
+      function selectTimeSlot(time) {
+        // 既存の選択をクリア
+        document.querySelectorAll('.time-slot').forEach(slot => {
+          slot.classList.remove('selected');
+        });
+        
+        // 新しい選択を適用
+        event.target.classList.add('selected');
+        
+        // 日時データの更新
+        const [hours, minutes] = time.split(':');
+        const selectedDate = new Date(currentDate);
+        selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        document.getElementById('reservation_datetime').value = selectedDate.toISOString();
+        document.getElementById('year').value = selectedDate.getFullYear();
+        document.getElementById('month').value = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+        document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
+        document.getElementById('hour').value = hours;
+        document.getElementById('minute').value = minutes;
+      }
+
+      // イベントリスナーの設定
+      document.getElementById('prev-week').addEventListener('click', () => {
+        currentDate.setDate(currentDate.getDate() - 7);
+        updateCalendar();
+      });
+
+      document.getElementById('next-week').addEventListener('click', () => {
+        currentDate.setDate(currentDate.getDate() + 7);
+        updateCalendar();
+      });
+
+      // LIFF初期化
       async function initializeLiff() {
         if (isLiffInitialized) return;
         
@@ -321,144 +392,7 @@
         }
       }
 
-      // カレンダー関連の関数
-      let currentDate = new Date();
-      const timeSlots = [
-        "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
-        "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
-      ];
-
-      // 利用可能な時間枠を計算
-      function calculateAvailableTimeSlots(events, date) {
-        const availableSlots = [...timeSlots];
-        const duration = 90; // 90分（1時間30分）
-
-        if (events) {
-          events.forEach(event => {
-            const startTime = new Date(event.start.dateTime);
-            const endTime = new Date(event.end.dateTime);
-            
-            availableSlots.forEach((slot, index) => {
-              const [hours, minutes] = slot.split(':');
-              const slotTime = new Date(date);
-              slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-              
-              const slotEndTime = new Date(slotTime.getTime() + duration * 60000);
-              
-              if (
-                (slotTime >= startTime && slotTime < endTime) ||
-                (slotEndTime > startTime && slotEndTime <= endTime) ||
-                (slotTime <= startTime && slotEndTime >= endTime)
-              ) {
-                availableSlots[index] = null;
-              }
-            });
-          });
-        }
-        
-        return availableSlots.filter(slot => slot !== null);
-      }
-
-      // Googleカレンダーから予定を取得
-      async function loadCalendarEvents(date) {
-        const timeMin = new Date(date);
-        timeMin.setHours(9, 30, 0, 0);
-        
-        const timeMax = new Date(date);
-        timeMax.setHours(16, 0, 0, 0);
-
-        try {
-          const response = await gapi.client.calendar.events.list({
-            'calendarId': CALENDAR_ID,
-            'timeMin': timeMin.toISOString(),
-            'timeMax': timeMax.toISOString(),
-            'singleEvents': true,
-            'orderBy': 'startTime'
-          });
-
-          const events = response.result.items;
-          return events;
-        } catch (error) {
-          console.error('Error loading calendar events:', error);
-          return [];
-        }
-      }
-
-      // カレンダーの更新処理を修正
-      async function updateCalendar() {
-        const monthElement = document.getElementById('calendar-month');
-        monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
-        
-        // Googleカレンダーから予定を取得
-        const events = await loadCalendarEvents(currentDate);
-        const availableSlots = calculateAvailableTimeSlots(events, currentDate);
-        
-        // 時間枠の生成
-        const timeSlotsContainer = document.getElementById('time-slots');
-        timeSlotsContainer.innerHTML = '';
-        
-        availableSlots.forEach(time => {
-          const slot = document.createElement('button');
-          slot.type = 'button';
-          slot.className = 'time-slot';
-          slot.textContent = time;
-          slot.onclick = () => selectTimeSlot(time);
-          timeSlotsContainer.appendChild(slot);
-        });
-      }
-
-      // Google Calendar APIの初期化
-      function initializeGoogleCalendar() {
-        gapi.client.init({
-          'apiKey': API_KEY,
-          'discoveryDocs': ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-        }).then(() => {
-          updateCalendar();
-        }).catch(error => {
-          console.error('Error initializing Google Calendar API:', error);
-        });
-      }
-
-      // 初期化処理を修正
-      window.addEventListener('load', () => {
-        console.log('ページ読み込み完了');
-        initializeLiff();
-        gapi.load('client', initializeGoogleCalendar);
-      });
-
-      function selectTimeSlot(time) {
-        // 既存の選択をクリア
-        document.querySelectorAll('.time-slot').forEach(slot => {
-          slot.classList.remove('selected');
-        });
-        
-        // 新しい選択を適用
-        event.target.classList.add('selected');
-        
-        // 日時データの更新
-        const [hours, minutes] = time.split(':');
-        const selectedDate = new Date(currentDate);
-        selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        
-        document.getElementById('reservation_datetime').value = selectedDate.toISOString();
-        document.getElementById('year').value = selectedDate.getFullYear();
-        document.getElementById('month').value = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
-        document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
-        document.getElementById('hour').value = hours;
-        document.getElementById('minute').value = minutes;
-      }
-
-      // イベントリスナーの設定
-      document.getElementById('prev-week').onclick = () => {
-        currentDate.setDate(currentDate.getDate() - 7);
-        updateCalendar();
-      };
-
-      document.getElementById('next-week').onclick = () => {
-        currentDate.setDate(currentDate.getDate() + 7);
-        updateCalendar();
-      };
-
+      // フォーム送信処理
       async function handleSubmit(event) {
         event.preventDefault();
         
@@ -508,9 +442,19 @@
 
         return false;
       }
+
+      // フォームのsubmitイベントにハンドラーを設定
+      document.getElementById('reservationForm').onsubmit = handleSubmit;
+
+      // 初期化処理の実行
+      await initializeLiff();
+      await updateCalendar();
     }
     
-    initializeApp();
+    // アプリケーションの初期化を実行
+    initializeApp().catch(error => {
+      console.error('アプリケーションの初期化に失敗しました:', error);
+    });
   </script>
 </body>
 </html> 
