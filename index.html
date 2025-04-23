@@ -373,6 +373,7 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       padding: 1.5rem;
       position: relative;
+      margin: 20px auto;
     }
     .modal-close {
       position: absolute;
@@ -386,6 +387,7 @@
       padding: 0;
       margin: 0;
       color: #666;
+      z-index: 10;
     }
     .modal-close:hover {
       color: #000;
@@ -600,6 +602,26 @@
         width: 18px;
         height: 18px;
       }
+      
+      .modal-container {
+        width: 95%;
+        max-height: 80vh;
+        padding: 1rem;
+        margin: auto;
+      }
+      
+      .modal-title {
+        font-size: 1.1rem;
+      }
+      
+      .calendar-table {
+        font-size: 0.8rem;
+      }
+      
+      .calendar-table th,
+      .calendar-table td {
+        padding: 0.3rem 0;
+      }
     }
   </style>
 </head>
@@ -621,7 +643,7 @@
 
       <div class="form-group">
         <label for="birthdate">生年月日 *</label>
-        <div id="birthdate-select" class="birthdate-display">
+        <div id="birthdate-select" class="birthdate-display" onclick="openBirthdatePicker()">
           <span id="birthdate-text">日付を選択してください</span>
           <span class="calendar-icon">
             <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -629,7 +651,7 @@
             </svg>
           </span>
         </div>
-        <input type="date" name="entry.566135767" id="birthdate" required style="display: none;" />
+        <input type="date" name="entry.566135767" id="birthdate" required style="position: absolute; opacity: 0; z-index: -1;" />
       </div>
 
       <div class="form-group">
@@ -648,7 +670,7 @@
 
       <div class="form-group">
         <label for="reservation_display">予約日時 *</label>
-        <div id="datetime-select" class="datetime-display">
+        <div id="datetime-select" class="datetime-display" onclick="openCalendarModal()">
           <span id="datetime-text" class="empty-text">カレンダーで日時を選択する</span>
           <span class="calendar-icon">
             <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -776,49 +798,88 @@
     // 生年月日ピッカーを開く関数
     function openBirthdatePicker() {
       console.log('生年月日ピッカーを開きます');
-      const datePicker = document.getElementById('birthdate');
-      datePicker.click();
-      
-      // 値が変更されたらテキスト表示を更新
-      datePicker.addEventListener('change', function() {
-        updateBirthdateDisplay();
-      });
+      try {
+        var datePicker = document.getElementById('birthdate');
+        // モバイルで動作するようにdirectクリックをシミュレート
+        if (datePicker) {
+          // モバイルの場合はclick()だけでは機能しないので、イベントをディスパッチ
+          var event;
+          if (typeof(MouseEvent) === 'function') {
+            event = new MouseEvent('click', {
+              'view': window,
+              'bubbles': true,
+              'cancelable': true
+            });
+          } else {
+            event = document.createEvent('MouseEvents');
+            event.initEvent('click', true, true);
+          }
+          datePicker.dispatchEvent(event);
+          
+          // 値が変更されたらテキスト表示を更新
+          datePicker.addEventListener('change', function() {
+            updateBirthdateDisplay();
+          });
+        } else {
+          console.error('生年月日フィールドが見つかりません');
+        }
+      } catch (e) {
+        console.error('生年月日ピッカーエラー:', e);
+      }
     }
     
     // 生年月日表示を更新する関数
     function updateBirthdateDisplay() {
       console.log('生年月日表示を更新します');
-      const datePicker = document.getElementById('birthdate');
-      const birthdateText = document.getElementById('birthdate-text');
+      var datePicker = document.getElementById('birthdate');
+      var birthdateText = document.getElementById('birthdate-text');
       
-      if (datePicker.value) {
-        // YYYY-MM-DD から YYYY年MM月DD日 に変換
-        const dateObj = new Date(datePicker.value);
-        const year = dateObj.getFullYear();
-        const month = dateObj.getMonth() + 1;
-        const day = dateObj.getDate();
-        birthdateText.textContent = `${year}年${month}月${day}日`;
-        birthdateText.style.color = '#000'; // 選択済みの色に変更
-      } else {
-        birthdateText.textContent = '日付を選択してください';
-        birthdateText.style.color = '#999';
+      if (datePicker && birthdateText) {
+        if (datePicker.value) {
+          // YYYY-MM-DD から YYYY年MM月DD日 に変換
+          var dateObj = new Date(datePicker.value);
+          var year = dateObj.getFullYear();
+          var month = dateObj.getMonth() + 1;
+          var day = dateObj.getDate();
+          birthdateText.textContent = year + '年' + month + '月' + day + '日';
+          birthdateText.style.color = '#000'; // 選択済みの色に変更
+        } else {
+          birthdateText.textContent = '日付を選択してください';
+          birthdateText.style.color = '#999';
+        }
       }
     }
     
     // カレンダーモーダルを開く関数
     function openCalendarModal() {
       console.log('カレンダーモーダルを開きます');
-      const modal = document.getElementById('calendar-modal');
-      modal.classList.add('active');
-      // モーダルを開いたときにカレンダーを更新
-      updateCalendar();
+      try {
+        var modal = document.getElementById('calendar-modal');
+        if (modal) {
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden'; // スクロール無効化
+          // モーダルを開いたときにカレンダーを更新
+          updateCalendar();
+        } else {
+          console.error('calendar-modalが見つかりません');
+        }
+      } catch (e) {
+        console.error('モーダルオープンエラー:', e);
+      }
     }
     
     // カレンダーモーダルを閉じる関数
     function closeCalendarModal() {
       console.log('カレンダーモーダルを閉じます');
-      const modal = document.getElementById('calendar-modal');
-      modal.classList.remove('active');
+      try {
+        var modal = document.getElementById('calendar-modal');
+        if (modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = ''; // スクロール有効化
+        }
+      } catch (e) {
+        console.error('モーダルクローズエラー:', e);
+      }
     }
     
     // 前の週に移動する関数
@@ -836,20 +897,20 @@
     // フォーム送信処理
     function handleSubmit(event) {
       event.preventDefault();
-      const form = document.getElementById('reservationForm');
+      var form = document.getElementById('reservationForm');
       
       if (!form.checkValidity()) {
         alert('必須項目を入力してください。');
         return false;
       }
 
-      const checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
+      var checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
       if (checkboxes.length === 0) {
         alert('AINOHOTを知ったきっかけを1つ以上選択してください。');
         return false;
       }
 
-      const submitButton = document.getElementById('submitButton');
+      var submitButton = document.getElementById('submitButton');
       submitButton.disabled = true;
       submitted = true;
 
@@ -867,39 +928,77 @@
       return false;
     }
     
+    // DOM操作のヘルパー関数
+    function addEventListeners(element, events, handler) {
+      if (!element) return;
+      events.forEach(function(event) {
+        element.addEventListener(event, handler);
+      });
+    }
+    
     // ページ読み込み完了時の処理
     window.onload = function() {
       console.log('ページ読み込み完了');
       
       // 生年月日フィールドの初期設定
-      const today = new Date();
-      const defaultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-      const formattedDate = `${defaultDate.getFullYear()}-${String(defaultDate.getMonth() + 1).padStart(2, '0')}-${String(defaultDate.getDate()).padStart(2, '0')}`;
-      document.getElementById('birthdate').max = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      document.getElementById('birthdate').value = formattedDate;
+      var today = new Date();
+      var defaultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      var formattedDate = defaultDate.getFullYear() + '-' + 
+                         String(defaultDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(defaultDate.getDate()).padStart(2, '0');
       
-      // 生年月日表示を初期化
-      updateBirthdateDisplay();
+      var birthdateField = document.getElementById('birthdate');
+      if (birthdateField) {
+        birthdateField.max = today.getFullYear() + '-' + 
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(today.getDate()).padStart(2, '0');
+        birthdateField.value = formattedDate;
+        
+        // 生年月日表示を初期化
+        updateBirthdateDisplay();
+      }
       
-      // モバイル対応のタッチイベント
-      const birthdateSelect = document.getElementById('birthdate-select');
-      birthdateSelect.addEventListener('touchstart', function(event) {
-        event.preventDefault();
-        openBirthdatePicker();
-      });
+      // 追加のモバイル対応
+      var birthdateSelect = document.getElementById('birthdate-select');
+      if (birthdateSelect) {
+        // タッチデバイス用の追加イベント（fastclickを考慮）
+        addEventListeners(birthdateSelect, ['touchstart', 'touchend'], function(e) {
+          e.preventDefault();
+          setTimeout(function() {
+            openBirthdatePicker();
+          }, 10);
+        });
+      }
       
-      const datetimeSelect = document.getElementById('datetime-select');
-      datetimeSelect.addEventListener('touchstart', function(event) {
-        event.preventDefault();
-        openCalendarModal();
-      });
+      var datetimeSelect = document.getElementById('datetime-select');
+      if (datetimeSelect) {
+        // タッチデバイス用の追加イベント
+        addEventListeners(datetimeSelect, ['touchstart', 'touchend'], function(e) {
+          e.preventDefault();
+          setTimeout(function() {
+            openCalendarModal();
+          }, 10);
+        });
+      }
+      
+      // カレンダーモーダルの閉じるボタン
+      var modalCloseBtn = document.querySelector('.modal-close');
+      if (modalCloseBtn) {
+        addEventListeners(modalCloseBtn, ['click', 'touchend'], function(e) {
+          e.preventDefault();
+          closeCalendarModal();
+        });
+      }
       
       // iframe load event
-      document.getElementById('hidden_iframe').onload = function() {
-        if (submitted) {
-          window.location.href = 'thanks.html';
-        }
-      };
+      var hiddenIframe = document.getElementById('hidden_iframe');
+      if (hiddenIframe) {
+        hiddenIframe.onload = function() {
+          if (submitted) {
+            window.location.href = 'thanks.html';
+          }
+        };
+      }
     };
   </script>
   
