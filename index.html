@@ -189,22 +189,34 @@
       background: white;
       border: 1px solid #3498db;
       color: #3498db;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
+      padding: 0.6rem 0.8rem;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
       display: flex;
       align-items: center;
       white-space: nowrap;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      width: 80px;
+      justify-content: center;
+      font-weight: 500;
     }
     .week-nav-button.prev {
-      left: -130px;
+      left: -100px;
     }
     .week-nav-button.next {
-      right: -130px;
+      right: -100px;
+    }
+    .week-nav-button:hover {
+      background-color: #3498db;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transform: translateY(-52%);
     }
     .week-nav-button span {
-      margin: 0 0.3rem;
+      margin: 0 0.2rem;
+      font-size: 1.1rem;
     }
     .calendar-day {
       text-align: center;
@@ -309,10 +321,10 @@
           <div class="calendar-grid" id="calendar-days">
             <!-- 日付と曜日はJavaScriptで動的に生成 -->
             <button type="button" id="prev-week-btn" class="week-nav-button prev">
-              <span>◀</span>前の一週間
+              <span>←</span>前週
             </button>
             <button type="button" id="next-week-btn" class="week-nav-button next">
-              次の一週間<span>▶</span>
+              次週<span>→</span>
             </button>
           </div>
           <div class="calendar-time-slots" id="time-slots">
@@ -559,7 +571,7 @@
         prevWeekBtn.type = 'button';
         prevWeekBtn.id = 'prev-week-btn';
         prevWeekBtn.className = 'week-nav-button prev';
-        prevWeekBtn.innerHTML = '<span>◀</span>前の一週間';
+        prevWeekBtn.innerHTML = '<span>←</span>前週';
         prevWeekBtn.addEventListener('click', () => {
           currentDate.setDate(currentDate.getDate() - 7);
           updateCalendar();
@@ -570,7 +582,7 @@
         nextWeekBtn.type = 'button';
         nextWeekBtn.id = 'next-week-btn';
         nextWeekBtn.className = 'week-nav-button next';
-        nextWeekBtn.innerHTML = '次の一週間<span>▶</span>';
+        nextWeekBtn.innerHTML = '次週<span>→</span>';
         nextWeekBtn.addEventListener('click', () => {
           currentDate.setDate(currentDate.getDate() + 7);
           updateCalendar();
