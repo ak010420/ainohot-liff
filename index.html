@@ -1058,14 +1058,6 @@
         const monthElement = document.getElementById('calendar-month');
         const calendarContainer = document.getElementById('calendar-table-container');
         
-        // 日本の祝日データ（例として）
-        const holidays = {
-          '2024-05-03': '憲法記念日',
-          '2024-05-04': 'みどりの日',
-          '2024-05-05': 'こどもの日',
-          '2024-05-06': '振替休日'
-        };
-        
         // 曜日の配列
         const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         
@@ -1097,12 +1089,10 @@
           twoWeeksDate.push(date);
           
           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-          const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-          const isHoliday = holidays[dateStr] !== undefined;
           
           const dateHeader = document.createElement('th');
           dateHeader.className = i >= 7 ? 'week2' : 'week1';
-          if (isWeekend || isHoliday) dateHeader.classList.add('holiday');
+          if (isWeekend) dateHeader.classList.add('holiday');
           
           dateHeader.innerHTML = `
             <div class="date">${date.getDate()}</div>
