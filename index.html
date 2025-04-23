@@ -303,6 +303,86 @@
     .reservation-button:hover {
       background: #2071E3;
     }
+
+    /* モーダルスタイル */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-container {
+      background-color: white;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      padding: 1.5rem;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 0.8rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      width: auto;
+      padding: 0;
+      margin: 0;
+      color: #666;
+    }
+    .modal-close:hover {
+      color: #000;
+      background: none;
+    }
+    .modal-header {
+      margin-bottom: 1rem;
+      text-align: center;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #eee;
+    }
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin: 0;
+    }
+    .datetime-display {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .datetime-display:hover {
+      border-color: #3498db;
+    }
+    .datetime-display .calendar-icon {
+      color: #3498db;
+      margin-left: 0.5rem;
+    }
+    .datetime-display .empty-text {
+      color: #999;
+    }
   </style>
 </head>
 <body>
@@ -341,36 +421,12 @@
       </div>
 
       <div class="form-group">
-        <label for="reservation_datetime">予約日時 *</label>
-        <div class="calendar-container">
-          <div class="calendar-header">
-            <div class="calendar-month-year">
-              <h2 id="calendar-month">2024年11月</h2>
-              <div class="month-picker" id="month-picker">
-                <div class="year-nav">
-                  <button type="button" id="prev-year">◀</button>
-                  <span id="current-year">2024</span>
-                  <button type="button" id="next-year">▶</button>
-                </div>
-                <div class="months-grid" id="months-grid">
-                  <!-- 月のグリッドはJavaScriptで動的に生成 -->
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="week-nav-wrapper">
-            <button type="button" id="prev-week-btn" class="week-nav-button" onclick="prevWeek()">
-              <span>←</span>前の週へ
-            </button>
-            <button type="button" id="next-week-btn" class="week-nav-button" onclick="nextWeek()">
-              次の週へ<span>→</span>
-            </button>
-          </div>
-          <div id="calendar-table-container">
-            <!-- カレンダーテーブルはJavaScriptで動的に生成 -->
-          </div>
+        <label for="reservation_display">予約日時 *</label>
+        <div id="datetime-select" class="datetime-display" onclick="openCalendarModal()">
+          <span id="datetime-text" class="empty-text">カレンダーで日時を選択する</span>
+          <span class="calendar-icon">📅</span>
         </div>
-        <input type="hidden" id="reservation_datetime" required />
+        <input type="hidden" id="reservation_datetime" name="reservation_datetime" required />
         <input type="hidden" name="entry.1608470188_year" id="year" />
         <input type="hidden" name="entry.1608470188_month" id="month" />
         <input type="hidden" name="entry.1608470188_day" id="day" />
@@ -422,6 +478,43 @@
     </form>
   </div>
   <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
+  <div id="calendar-modal" class="modal-overlay">
+    <div class="modal-container">
+      <button type="button" class="modal-close" onclick="closeCalendarModal()">×</button>
+      <div class="modal-header">
+        <h3 class="modal-title">日時を選択</h3>
+      </div>
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <div class="calendar-month-year">
+            <h2 id="calendar-month">2024年11月</h2>
+            <div class="month-picker" id="month-picker">
+              <div class="year-nav">
+                <button type="button" id="prev-year">◀</button>
+                <span id="current-year">2024</span>
+                <button type="button" id="next-year">▶</button>
+              </div>
+              <div class="months-grid" id="months-grid">
+                <!-- 月のグリッドはJavaScriptで動的に生成 -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="week-nav-wrapper">
+          <button type="button" id="prev-week-btn" class="week-nav-button" onclick="prevWeek()">
+            <span>←</span>前の週へ
+          </button>
+          <button type="button" id="next-week-btn" class="week-nav-button" onclick="nextWeek()">
+            次の週へ<span>→</span>
+          </button>
+        </div>
+        <div id="calendar-table-container">
+          <!-- カレンダーテーブルはJavaScriptで動的に生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import configPromise from './config.js';
@@ -748,6 +841,31 @@
         document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
         document.getElementById('hour').value = hours;
         document.getElementById('minute').value = minutes;
+        
+        // 表示用テキストの更新
+        const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`;
+        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+        const weekdayStr = weekdays[selectedDate.getDay()];
+        const timeStr = `${hours}:${minutes}`;
+        document.getElementById('datetime-text').textContent = `${dateStr}(${weekdayStr}) ${timeStr}`;
+        document.getElementById('datetime-text').classList.remove('empty-text');
+        
+        // モーダルを閉じる
+        setTimeout(() => {
+          window.closeCalendarModal();
+        }, 300);
+      };
+
+      // モーダルを開く
+      window.openCalendarModal = function() {
+        document.getElementById('calendar-modal').classList.add('active');
+        // モーダルを開いたときにカレンダーを更新
+        window.updateCalendar();
+      };
+      
+      // モーダルを閉じる
+      window.closeCalendarModal = function() {
+        document.getElementById('calendar-modal').classList.remove('active');
       };
 
       // LIFF初期化
