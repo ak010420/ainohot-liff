@@ -95,20 +95,19 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
-    }
-    .calendar-nav {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
+      text-align: center;
     }
     .calendar-month-year {
       position: relative;
       display: inline-block;
+      text-align: center;
+      width: 100%;
     }
     .calendar-month-year h2 {
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       margin: 0;
       font-size: 1.2rem;
     }
@@ -120,7 +119,8 @@
     .month-picker {
       position: absolute;
       top: 100%;
-      left: 0;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 10;
       background: white;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -167,120 +167,97 @@
       background-color: #3498db;
       color: white;
     }
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 0.5rem;
-      border-bottom: 1px solid #e0e0e0;
-      padding-bottom: 0.5rem;
-      margin-bottom: 0.5rem;
-      position: relative;
-    }
     .week-nav-wrapper {
       display: flex;
       justify-content: space-between;
       margin-bottom: 1rem;
       width: 100%;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 0.5rem;
     }
     .week-nav-button {
       background: white;
-      border: 1px solid #3498db;
-      color: #3498db;
+      border: 1px solid #ddd;
+      color: #666;
       padding: 0.6rem 0.8rem;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
       font-size: 0.9rem;
       display: flex;
       align-items: center;
       white-space: nowrap;
       transition: all 0.3s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      width: 80px;
-      justify-content: center;
       font-weight: 500;
     }
     .week-nav-button:hover {
-      background-color: #3498db;
-      color: white;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transform: translateY(-2px);
+      background-color: #f5f5f5;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
     .week-nav-button span {
       margin: 0 0.2rem;
       font-size: 1.1rem;
     }
-    .calendar-day {
+    
+    /* テーブル形式のカレンダー */
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .calendar-table th,
+    .calendar-table td {
+      border: 1px solid #e0e0e0;
       text-align: center;
+      padding: 0.5rem 0;
+      position: relative;
     }
-    .calendar-day .weekday {
-      font-size: 0.8rem;
-      color: #666;
-      margin-bottom: 0.2rem;
+    .calendar-table th {
+      background-color: #f9f9f9;
+      font-weight: normal;
     }
-    .calendar-day .date {
+    .calendar-table th.holiday {
+      color: #e74c3c;
+    }
+    .calendar-table th .date {
       font-size: 1.1rem;
       font-weight: bold;
     }
-    .calendar-time-slots {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 0.5rem;
-      overflow-x: auto;
+    .calendar-table th .weekday {
+      font-size: 0.8rem;
+      color: #666;
     }
-    .day-column {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+    .calendar-table td.time-label {
+      background-color: #f9f9f9;
+      font-weight: bold;
     }
-    .time-slot {
-      padding: 0.5rem;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      text-align: center;
+    .calendar-table .available {
+      color: #8e44ad;
       cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
     }
-    .time-slot:hover {
-      background-color: #f8f9fa;
+    .calendar-table .available::before {
+      content: "◯";
+      font-size: 1.2rem;
     }
-    .time-slot.selected {
-      background-color: #2c5282;
-      color: white;
-      border-color: #2c5282;
-    }
-    .time-slot.disabled {
+    .calendar-table .available:hover {
       background-color: #f0f0f0;
-      color: #999;
-      cursor: not-allowed;
+    }
+    .calendar-table .unavailable::before {
+      content: "×";
+      color: #bbb;
+      font-size: 1.2rem;
+    }
+    .calendar-table .selected {
+      background-color: #8e44ad;
+      color: white;
+    }
+    .calendar-table .selected::before {
+      content: "◯";
+      font-size: 1.2rem;
     }
 
     /* レスポンシブ対応 */
     @media (max-width: 768px) {
-      .calendar-time-slots {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .calendar-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .calendar-day:nth-child(n+4) {
-        display: none;
-      }
-      .day-column:nth-child(n+4) {
-        display: none;
-      }
-    }
-    @media (max-width: 480px) {
-      .calendar-time-slots {
-        grid-template-columns: repeat(1, 1fr);
-      }
-      .calendar-grid {
-        grid-template-columns: repeat(1, 1fr);
-      }
-      .calendar-day:nth-child(n+2) {
-        display: none;
-      }
-      .day-column:nth-child(n+2) {
+      .calendar-table .week2 {
         display: none;
       }
     }
@@ -341,17 +318,14 @@
           </div>
           <div class="week-nav-wrapper">
             <button type="button" id="prev-week-btn" class="week-nav-button">
-              <span>←</span>前週
+              <span>←</span>前の週へ
             </button>
             <button type="button" id="next-week-btn" class="week-nav-button">
-              次週<span>→</span>
+              次の週へ<span>→</span>
             </button>
           </div>
-          <div class="calendar-grid" id="calendar-days">
-            <!-- 日付と曜日はJavaScriptで動的に生成 -->
-          </div>
-          <div class="calendar-time-slots" id="time-slots">
-            <!-- 時間枠はJavaScriptで動的に生成 -->
+          <div id="calendar-table-container">
+            <!-- カレンダーテーブルはJavaScriptで動的に生成 -->
           </div>
         </div>
         <input type="hidden" id="reservation_datetime" required />
@@ -537,140 +511,171 @@
         }
       }
 
-      // 利用可能な時間枠を計算
-      function calculateAvailableTimeSlots(events, date) {
-        const availableSlots = [...timeSlots];
-        const duration = 90; // 90分（1時間30分）
-
-        if (events) {
-          events.forEach(event => {
-            const startTime = new Date(event.start.dateTime);
-            const endTime = new Date(event.end.dateTime);
-            
-            availableSlots.forEach((slot, index) => {
-              const [hours, minutes] = slot.split(':');
-              const slotTime = new Date(date);
-              slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-              
-              const slotEndTime = new Date(slotTime.getTime() + duration * 60000);
-              
-              if (
-                (slotTime >= startTime && slotTime < endTime) ||
-                (slotEndTime > startTime && slotEndTime <= endTime) ||
-                (slotTime <= startTime && slotEndTime >= endTime)
-              ) {
-                availableSlots[index] = null;
-              }
-            });
-          });
-        }
-        
-        return availableSlots.filter(slot => slot !== null);
-      }
-
       // カレンダーの更新処理
       async function updateCalendar() {
         const monthElement = document.getElementById('calendar-month');
-        const daysElement = document.getElementById('calendar-days');
-        const timeSlotsContainer = document.getElementById('time-slots');
+        const calendarContainer = document.getElementById('calendar-table-container');
+        
+        // 日本の祝日データ（例として）
+        const holidays = {
+          '2024-05-03': '憲法記念日',
+          '2024-05-04': 'みどりの日',
+          '2024-05-05': 'こどもの日',
+          '2024-05-06': '振替休日'
+        };
         
         // 曜日の配列
-        const weekdays = ['月', '火', '水', '木', '金', '土', '日'];
+        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         
         // 月表示を更新
         monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
         
         // 週の開始日を月曜日に設定
-        const weekStart = new Date(currentDate);
+        let weekStart = new Date(currentDate);
         const day = currentDate.getDay();
         weekStart.setDate(currentDate.getDate() - (day === 0 ? 6 : day - 1));
         
-        // 日付グリッドをクリア
-        daysElement.innerHTML = '';
-        timeSlotsContainer.innerHTML = '';
+        // テーブルを生成
+        const table = document.createElement('table');
+        table.className = 'calendar-table';
+        
+        // ヘッダー行（日付）
+        const headerRow = document.createElement('tr');
+        
+        // 時間列のヘッダー
+        const timeHeader = document.createElement('th');
+        timeHeader.textContent = '';
+        headerRow.appendChild(timeHeader);
+        
+        // 2週間分の日付を表示
+        const twoWeeksDate = [];
+        for (let i = 0; i < 14; i++) {
+          const date = new Date(weekStart);
+          date.setDate(weekStart.getDate() + i);
+          twoWeeksDate.push(date);
+          
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+          const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+          const isHoliday = holidays[dateStr] !== undefined;
+          
+          const dateHeader = document.createElement('th');
+          dateHeader.className = i >= 7 ? 'week2' : 'week1';
+          if (isWeekend || isHoliday) dateHeader.classList.add('holiday');
+          
+          dateHeader.innerHTML = `
+            <div class="date">${date.getDate()}</div>
+            <div class="weekday">${weekdays[date.getDay()]}</div>
+          `;
+          
+          headerRow.appendChild(dateHeader);
+        }
+        
+        table.appendChild(headerRow);
         
         try {
           // Googleカレンダーから予定を取得
           const events = await loadCalendarEvents(currentDate);
           
-          // 7日分の日付と時間枠を生成
-          for (let i = 0; i < 7; i++) {
-            const date = new Date(weekStart);
-            date.setDate(weekStart.getDate() + i);
+          // 時間枠ごとの行を生成
+          timeSlots.forEach(time => {
+            const row = document.createElement('tr');
             
-            // 日付と曜日を表示
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'calendar-day';
-            dayDiv.innerHTML = `
-              <div class="weekday">${weekdays[i]}</div>
-              <div class="date">${date.getDate()}</div>
-            `;
-            daysElement.appendChild(dayDiv);
+            // 時間ラベル
+            const timeCell = document.createElement('td');
+            timeCell.className = 'time-label';
+            timeCell.textContent = time;
+            row.appendChild(timeCell);
             
-            // 時間枠のカラムを作成
-            const dayColumn = document.createElement('div');
-            dayColumn.className = 'day-column';
-            
-            // この日の利用可能な時間枠を計算
-            const availableSlots = calculateAvailableTimeSlots(events, date);
-            
-            availableSlots.forEach(time => {
-              if (time) {
-                const slot = document.createElement('button');
-                slot.type = 'button';
-                slot.className = 'time-slot';
-                slot.textContent = time;
-                slot.onclick = () => selectTimeSlot(time, date);
-                dayColumn.appendChild(slot);
+            // 各日の予約状況
+            twoWeeksDate.forEach((date, index) => {
+              const cell = document.createElement('td');
+              cell.className = index >= 7 ? 'week2' : 'week1';
+              
+              // この時間が予約可能かチェック
+              const isAvailable = checkTimeAvailability(events, date, time);
+              
+              if (isAvailable) {
+                cell.classList.add('available');
+                cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
+              } else {
+                cell.classList.add('unavailable');
               }
+              
+              row.appendChild(cell);
             });
             
-            timeSlotsContainer.appendChild(dayColumn);
-          }
+            table.appendChild(row);
+          });
+          
         } catch (error) {
           console.error('カレンダーの更新に失敗しました:', error);
           
-          // エラー時は全ての時間枠を表示
-          for (let i = 0; i < 7; i++) {
-            const date = new Date(weekStart);
-            date.setDate(weekStart.getDate() + i);
+          // エラー時も時間枠ごとの行を生成（すべて利用可能として表示）
+          timeSlots.forEach(time => {
+            const row = document.createElement('tr');
             
-            // 日付と曜日を表示
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'calendar-day';
-            dayDiv.innerHTML = `
-              <div class="weekday">${weekdays[i]}</div>
-              <div class="date">${date.getDate()}</div>
-            `;
-            daysElement.appendChild(dayDiv);
+            // 時間ラベル
+            const timeCell = document.createElement('td');
+            timeCell.className = 'time-label';
+            timeCell.textContent = time;
+            row.appendChild(timeCell);
             
-            // 時間枠のカラムを作成
-            const dayColumn = document.createElement('div');
-            dayColumn.className = 'day-column';
-            
-            timeSlots.forEach(time => {
-              const slot = document.createElement('button');
-              slot.type = 'button';
-              slot.className = 'time-slot';
-              slot.textContent = time;
-              slot.onclick = () => selectTimeSlot(time, date);
-              dayColumn.appendChild(slot);
+            // 各日の予約状況
+            twoWeeksDate.forEach((date, index) => {
+              const cell = document.createElement('td');
+              cell.className = index >= 7 ? 'week2' : 'week1';
+              
+              // エラー時はすべて予約可能として表示
+              cell.classList.add('available');
+              cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
+              
+              row.appendChild(cell);
             });
             
-            timeSlotsContainer.appendChild(dayColumn);
+            table.appendChild(row);
+          });
+        }
+        
+        // 古いテーブルを削除して新しいテーブルを追加
+        calendarContainer.innerHTML = '';
+        calendarContainer.appendChild(table);
+      }
+
+      // 時間枠が予約可能かチェック
+      function checkTimeAvailability(events, date, time) {
+        const [hours, minutes] = time.split(':');
+        const slotTime = new Date(date);
+        slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        const slotEndTime = new Date(slotTime.getTime() + 90 * 60000); // 90分
+        
+        if (events) {
+          for (const event of events) {
+            const startTime = new Date(event.start.dateTime);
+            const endTime = new Date(event.end.dateTime);
+            
+            if (
+              (slotTime >= startTime && slotTime < endTime) ||
+              (slotEndTime > startTime && slotEndTime <= endTime) ||
+              (slotTime <= startTime && slotEndTime >= endTime)
+            ) {
+              return false; // 予約不可
+            }
           }
         }
+        
+        return true; // 予約可能
       }
 
       // 時間枠選択処理を修正
-      function selectTimeSlot(time, date) {
+      function selectTimeSlot(time, date, cell) {
         // 既存の選択をクリア
-        document.querySelectorAll('.time-slot').forEach(slot => {
+        document.querySelectorAll('.calendar-table .selected').forEach(slot => {
           slot.classList.remove('selected');
         });
         
         // 新しい選択を適用
-        event.target.classList.add('selected');
+        cell.classList.add('selected');
         
         // 日時データの更新
         const [hours, minutes] = time.split(':');
