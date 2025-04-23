@@ -592,10 +592,7 @@
         padding: 1rem;
         margin: auto;
         overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        -webkit-overflow-scrolling: touch; /* iOSのスクロール改善 */
       }
       
       .modal-title {
@@ -610,6 +607,28 @@
       .calendar-table td {
         padding: 0.3rem 0;
       }
+      
+      /* カレンダーコンテナのモバイル調整 */
+      .calendar-container {
+        padding: 0.5rem;
+        max-height: 65vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* モーダルオーバーレイの調整 */
+      .modal-overlay.active {
+        display: flex;
+        align-items: flex-start;
+        padding-top: 5vh;
+        overflow-y: auto;
+      }
+    }
+
+    #calendar-table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
@@ -865,7 +884,20 @@
         
         // モーダルを表示
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden'; // スクロール無効化
+        
+        // モバイルでのスクロール挙動を改善
+        if (window.innerWidth <= 480) {
+          // スクロール位置をリセット
+          setTimeout(function() {
+            var modalContainer = modal.querySelector('.modal-container');
+            if (modalContainer) {
+              modalContainer.scrollTop = 0;
+            }
+          }, 100);
+        } else {
+          // PCの場合は背景スクロールを無効化
+          document.body.style.overflow = 'hidden';
+        }
         
         // カレンダーが初期化されているか確認
         if (appState.isCalendarReady && typeof updateCalendar === 'function') {
@@ -908,7 +940,8 @@
         var modal = document.getElementById('calendar-modal');
         if (modal) {
           modal.classList.remove('active');
-          document.body.style.overflow = ''; // スクロール有効化
+          // スクロールを元に戻す
+          document.body.style.overflow = '';
         }
       } catch (e) {
         console.error('モーダルクローズエラー:', e);
