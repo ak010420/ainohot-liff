@@ -418,6 +418,8 @@
       justify-content: space-between;
       align-items: center;
       gap: 0;
+      transition: all 0.2s ease;
+      height: 3rem;
     }
     .datetime-display:hover {
       border-color: #3498db;
@@ -571,6 +573,7 @@
       gap: 0;
       transition: all 0.2s ease;
       height: 3rem;
+      position: relative;
     }
     
     .birthdate-display:hover {
@@ -658,7 +661,7 @@
             </svg>
           </span>
         </div>
-        <input type="date" name="entry.566135767" id="birthdate" required style="position: absolute; opacity: 0; z-index: -1;" />
+        <input type="date" name="entry.566135767" id="birthdate" required style="opacity: 0; position: absolute; z-index: -1; width: 100%; height: 100%; top: 0; left: 0;" />
       </div>
 
       <div class="form-group">
@@ -821,6 +824,40 @@
       isLiffInitialized: false
     };
     
+    // ページ読み込み完了時の処理
+    window.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM読み込み完了');
+      
+      // 生年月日フィールドの初期化
+      var today = new Date();
+      var defaultDate = new Date(today.getFullYear() - 20, today.getMonth(), today.getDate());
+      var formattedDate = defaultDate.getFullYear() + '-' + 
+                         String(defaultDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(defaultDate.getDate()).padStart(2, '0');
+      
+      var birthdateField = document.getElementById('birthdate');
+      if (birthdateField) {
+        birthdateField.max = today.getFullYear() + '-' + 
+                           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(today.getDate()).padStart(2, '0');
+        birthdateField.value = formattedDate;
+        
+        // 生年月日表示を初期化
+        updateBirthdateDisplay();
+      }
+      
+      // 生年月日選択のイベントリスナー設定
+      var birthdateSelect = document.getElementById('birthdate-select');
+      if (birthdateSelect) {
+        birthdateSelect.addEventListener('click', function(e) {
+          e.preventDefault();
+          setTimeout(function() {
+            openBirthdatePicker();
+          }, 50);
+        });
+      }
+    });
+    
     // 生年月日ピッカーを開く関数
     function openBirthdatePicker() {
       try {
@@ -828,17 +865,44 @@
         if (datePicker) {
           // モバイルでの互換性のため
           var event;
-          if (typeof(MouseEvent) === 'function') {
-            event = new MouseEvent('click', {
-              'view': window,
-              'bubbles': true,
-              'cancelable': true
-            });
-          } else {
-            event = document.createEvent('MouseEvents');
-            event.initEvent('click', true, true);
-          }
-          datePicker.dispatchEvent(event);
+          
+          // フォーカスを設定（重要）
+          datePicker.focus();
+          
+          // タイマーを使用して少し遅延させる（特にモバイル向け）
+          setTimeout(function() {
+            // クリックイベントを作成して発火
+            if (typeof(MouseEvent) === 'function') {
+              event = new MouseEvent('click', {
+                'view': window,
+                'bubbles': true,
+                'cancelable': true
+              });
+            } else {
+              event = document.createEvent('MouseEvents');
+              event.initEvent('click', true, true);
+            }
+            datePicker.dispatchEvent(event);
+            
+            // モバイルではタッチイベントも試す
+            if ('ontouchstart' in window) {
+              const touchEvent = new TouchEvent('touchstart', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+              });
+              datePicker.dispatchEvent(touchEvent);
+            }
+            
+            // 直接showPickerを呼び出す（サポートされているブラウザのみ）
+            if (typeof datePicker.showPicker === 'function') {
+              try {
+                datePicker.showPicker();
+              } catch (e) {
+                console.log('showPicker非対応ブラウザです:', e);
+              }
+            }
+          }, 100);
           
           // 値が変更されたらテキスト表示を更新
           datePicker.addEventListener('change', function() {
@@ -849,6 +913,7 @@
         }
       } catch (e) {
         console.error('生年月日ピッカーエラー:', e);
+        alert('生年月日選択で問題が発生しました。別の方法で入力してください。');
       }
     }
     
