@@ -783,6 +783,9 @@
       "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
     ];
     
+    // グローバルスコープでupdateCalendarの宣言
+    var updateCalendar;
+    
     // 生年月日ピッカーを開く関数
     function openBirthdatePicker() {
       console.log('生年月日ピッカーを開きます');
@@ -810,9 +813,11 @@
           });
         } else {
           console.error('生年月日フィールドが見つかりません');
+          alert('エラー: 生年月日フィールドが見つかりません');
         }
       } catch (e) {
         console.error('生年月日ピッカーエラー:', e);
+        alert('生年月日ピッカーエラー: ' + e.message);
       }
     }
     
@@ -847,8 +852,16 @@
           console.log('モーダルが見つかりました');
           modal.classList.add('active');
           document.body.style.overflow = 'hidden'; // スクロール無効化
-          // モーダルを開いたときにカレンダーを更新
-          updateCalendar();
+          
+          // updateCalendarが定義されているか確認
+          if (typeof updateCalendar === 'function') {
+            console.log('updateCalendar関数を呼び出します');
+            // モーダルを開いたときにカレンダーを更新
+            updateCalendar();
+          } else {
+            console.error('updateCalendar関数が定義されていません');
+            alert('エラー: updateCalendar関数が見つかりません。ページを再読み込みしてください。');
+          }
         } else {
           console.error('calendar-modalが見つかりません');
           alert('エラー: calendar-modalが見つかりません');
@@ -870,19 +883,38 @@
         }
       } catch (e) {
         console.error('モーダルクローズエラー:', e);
+        alert('モーダルクローズエラー: ' + e.message);
       }
     }
     
     // 前の週に移動する関数
     function prevWeek() {
       currentDate.setDate(currentDate.getDate() - 7);
-      updateCalendar();
+      if (typeof updateCalendar === 'function') {
+        updateCalendar();
+      } else {
+        console.error('updateCalendar関数が定義されていません');
+        alert('エラー: updateCalendar関数が見つかりません');
+      }
     }
 
     // 次の週に移動する関数
     function nextWeek() {
       currentDate.setDate(currentDate.getDate() + 7);
-      updateCalendar();
+      if (typeof updateCalendar === 'function') {
+        updateCalendar();
+      } else {
+        console.error('updateCalendar関数が定義されていません');
+        alert('エラー: updateCalendar関数が見つかりません');
+      }
+    }
+    
+    // DOM操作のヘルパー関数
+    function addEventListeners(element, events, handler) {
+      if (!element) return;
+      events.forEach(function(event) {
+        element.addEventListener(event, handler);
+      });
     }
     
     // フォーム送信処理
@@ -917,14 +949,6 @@
       }
 
       return false;
-    }
-    
-    // DOM操作のヘルパー関数
-    function addEventListeners(element, events, handler) {
-      if (!element) return;
-      events.forEach(function(event) {
-        element.addEventListener(event, handler);
-      });
     }
     
     // ページ読み込み完了時の処理
@@ -1053,124 +1077,147 @@
         }
       }
       
-      // カレンダーの更新処理
-      window.updateCalendar = async function() {
-        const monthElement = document.getElementById('calendar-month');
-        const calendarContainer = document.getElementById('calendar-table-container');
-        
-        // 曜日の配列
-        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-        
-        // 月表示を更新
-        monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
-        
-        // 週の開始日を月曜日に設定
-        let weekStart = new Date(currentDate);
-        const day = currentDate.getDay();
-        weekStart.setDate(currentDate.getDate() - (day === 0 ? 6 : day - 1));
-        
-        // テーブルを生成
-        const table = document.createElement('table');
-        table.className = 'calendar-table';
-        
-        // ヘッダー行（日付）
-        const headerRow = document.createElement('tr');
-        
-        // 時間列のヘッダー
-        const timeHeader = document.createElement('th');
-        timeHeader.textContent = '';
-        headerRow.appendChild(timeHeader);
-        
-        // 2週間分の日付を表示
-        const twoWeeksDate = [];
-        for (let i = 0; i < 14; i++) {
-          const date = new Date(weekStart);
-          date.setDate(weekStart.getDate() + i);
-          twoWeeksDate.push(date);
-          
-          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-          
-          const dateHeader = document.createElement('th');
-          dateHeader.className = i >= 7 ? 'week2' : 'week1';
-          if (isWeekend) dateHeader.classList.add('holiday');
-          
-          dateHeader.innerHTML = `
-            <div class="date">${date.getDate()}</div>
-            <div class="weekday">${weekdays[date.getDay()]}</div>
-          `;
-          
-          headerRow.appendChild(dateHeader);
-        }
-        
-        table.appendChild(headerRow);
-        
+      // カレンダーの更新処理をグローバル関数として定義
+      updateCalendar = async function() {
+        console.log('updateCalendar関数が呼び出されました');
         try {
-          // Googleカレンダーから予定を取得
-          const events = await loadCalendarEvents(currentDate);
+          const monthElement = document.getElementById('calendar-month');
+          const calendarContainer = document.getElementById('calendar-table-container');
           
-          // 時間枠ごとの行を生成
-          timeSlots.forEach(time => {
-            const row = document.createElement('tr');
+          if (!monthElement || !calendarContainer) {
+            console.error('カレンダー要素が見つかりません');
+            alert('エラー: カレンダー要素が見つかりません');
+            return;
+          }
+          
+          // 日本の祝日データ（例として）
+          const holidays = {
+            '2024-05-03': '憲法記念日',
+            '2024-05-04': 'みどりの日',
+            '2024-05-05': 'こどもの日',
+            '2024-05-06': '振替休日'
+          };
+          
+          // 曜日の配列
+          const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+          
+          // 月表示を更新
+          monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
+          
+          // 週の開始日を月曜日に設定
+          let weekStart = new Date(currentDate);
+          const day = currentDate.getDay();
+          weekStart.setDate(currentDate.getDate() - (day === 0 ? 6 : day - 1));
+          
+          // テーブルを生成
+          const table = document.createElement('table');
+          table.className = 'calendar-table';
+          
+          // ヘッダー行（日付）
+          const headerRow = document.createElement('tr');
+          
+          // 時間列のヘッダー
+          const timeHeader = document.createElement('th');
+          timeHeader.textContent = '';
+          headerRow.appendChild(timeHeader);
+          
+          // 2週間分の日付を表示
+          const twoWeeksDate = [];
+          for (let i = 0; i < 14; i++) {
+            const date = new Date(weekStart);
+            date.setDate(weekStart.getDate() + i);
+            twoWeeksDate.push(date);
             
-            // 時間ラベル
-            const timeCell = document.createElement('td');
-            timeCell.className = 'time-label';
-            timeCell.textContent = time;
-            row.appendChild(timeCell);
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            const isHoliday = holidays[dateStr] !== undefined;
             
-            // 各日の予約状況
-            twoWeeksDate.forEach((date, index) => {
-              const cell = document.createElement('td');
-              cell.className = index >= 7 ? 'week2' : 'week1';
+            const dateHeader = document.createElement('th');
+            dateHeader.className = i >= 7 ? 'week2' : 'week1';
+            if (isWeekend || isHoliday) dateHeader.classList.add('holiday');
+            
+            dateHeader.innerHTML = `
+              <div class="date">${date.getDate()}</div>
+              <div class="weekday">${weekdays[date.getDay()]}</div>
+            `;
+            
+            headerRow.appendChild(dateHeader);
+          }
+          
+          table.appendChild(headerRow);
+          
+          try {
+            // Googleカレンダーから予定を取得
+            const events = await loadCalendarEvents(currentDate);
+            
+            // 時間枠ごとの行を生成
+            timeSlots.forEach(time => {
+              const row = document.createElement('tr');
               
-              // この時間が予約可能かチェック
-              const isAvailable = checkTimeAvailability(events, date, time);
+              // 時間ラベル
+              const timeCell = document.createElement('td');
+              timeCell.className = 'time-label';
+              timeCell.textContent = time;
+              row.appendChild(timeCell);
               
-              if (isAvailable) {
+              // 各日の予約状況
+              twoWeeksDate.forEach((date, index) => {
+                const cell = document.createElement('td');
+                cell.className = index >= 7 ? 'week2' : 'week1';
+                
+                // この時間が予約可能かチェック
+                const isAvailable = checkTimeAvailability(events, date, time);
+                
+                if (isAvailable) {
+                  cell.classList.add('available');
+                  cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
+                } else {
+                  cell.classList.add('unavailable');
+                }
+                
+                row.appendChild(cell);
+              });
+              
+              table.appendChild(row);
+            });
+            
+          } catch (error) {
+            console.error('カレンダーの更新に失敗しました:', error);
+            alert('カレンダーの更新エラー: ' + error.message);
+            
+            // エラー時も時間枠ごとの行を生成（すべて利用可能として表示）
+            timeSlots.forEach(time => {
+              const row = document.createElement('tr');
+              
+              // 時間ラベル
+              const timeCell = document.createElement('td');
+              timeCell.className = 'time-label';
+              timeCell.textContent = time;
+              row.appendChild(timeCell);
+              
+              // 各日の予約状況
+              twoWeeksDate.forEach((date, index) => {
+                const cell = document.createElement('td');
+                cell.className = index >= 7 ? 'week2' : 'week1';
+                
+                // エラー時はすべて予約可能として表示
                 cell.classList.add('available');
                 cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
-              } else {
-                cell.classList.add('unavailable');
-              }
+                
+                row.appendChild(cell);
+              });
               
-              row.appendChild(cell);
+              table.appendChild(row);
             });
-            
-            table.appendChild(row);
-          });
+          }
           
-        } catch (error) {
-          console.error('カレンダーの更新に失敗しました:', error);
-          
-          // エラー時も時間枠ごとの行を生成（すべて利用可能として表示）
-          timeSlots.forEach(time => {
-            const row = document.createElement('tr');
-            
-            // 時間ラベル
-            const timeCell = document.createElement('td');
-            timeCell.className = 'time-label';
-            timeCell.textContent = time;
-            row.appendChild(timeCell);
-            
-            // 各日の予約状況
-            twoWeeksDate.forEach((date, index) => {
-              const cell = document.createElement('td');
-              cell.className = index >= 7 ? 'week2' : 'week1';
-              
-              // エラー時はすべて予約可能として表示
-              cell.classList.add('available');
-              cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
-              
-              row.appendChild(cell);
-            });
-            
-            table.appendChild(row);
-          });
+          // 古いテーブルを削除して新しいテーブルを追加
+          calendarContainer.innerHTML = '';
+          calendarContainer.appendChild(table);
+        } catch (e) {
+          console.error('updateCalendarエラー:', e);
+          alert('updateCalendarエラー: ' + e.message);
         }
-        
-        // 古いテーブルを削除して新しいテーブルを追加
-        calendarContainer.innerHTML = '';
-        calendarContainer.appendChild(table);
       };
       
       // Googleカレンダーから予定を取得
@@ -1237,40 +1284,49 @@
         return true; // 予約可能
       };
       
-      // 時間枠選択処理
+      // 時間枠選択処理をグローバル関数として定義
       window.selectTimeSlot = function(time, date, cell) {
-        // 既存の選択をクリア
-        document.querySelectorAll('.calendar-table .selected').forEach(slot => {
-          slot.classList.remove('selected');
-        });
-        
-        // 新しい選択を適用
-        cell.classList.add('selected');
-        
-        // 日時データの更新
-        const [hours, minutes] = time.split(':');
-        const selectedDate = new Date(date);
-        selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        
-        document.getElementById('reservation_datetime').value = selectedDate.toISOString();
-        document.getElementById('year').value = selectedDate.getFullYear();
-        document.getElementById('month').value = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
-        document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
-        document.getElementById('hour').value = hours;
-        document.getElementById('minute').value = minutes;
-        
-        // 表示用テキストの更新
-        const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`;
-        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-        const weekdayStr = weekdays[selectedDate.getDay()];
-        const timeStr = `${hours}:${minutes}`;
-        document.getElementById('datetime-text').textContent = `${dateStr}(${weekdayStr}) ${timeStr}`;
-        document.getElementById('datetime-text').classList.remove('empty-text');
-        
-        // モーダルを閉じる
-        setTimeout(() => {
-          closeCalendarModal();
-        }, 300);
+        try {
+          // 既存の選択をクリア
+          document.querySelectorAll('.calendar-table .selected').forEach(slot => {
+            slot.classList.remove('selected');
+          });
+          
+          // 新しい選択を適用
+          cell.classList.add('selected');
+          
+          // 日時データの更新
+          const [hours, minutes] = time.split(':');
+          const selectedDate = new Date(date);
+          selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          
+          document.getElementById('reservation_datetime').value = selectedDate.toISOString();
+          document.getElementById('year').value = selectedDate.getFullYear();
+          document.getElementById('month').value = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+          document.getElementById('day').value = selectedDate.getDate().toString().padStart(2, '0');
+          document.getElementById('hour').value = hours;
+          document.getElementById('minute').value = minutes;
+          
+          // 表示用テキストの更新
+          const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`;
+          const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+          const weekdayStr = weekdays[selectedDate.getDay()];
+          const timeStr = `${hours}:${minutes}`;
+          
+          const datetimeText = document.getElementById('datetime-text');
+          if (datetimeText) {
+            datetimeText.textContent = `${dateStr}(${weekdayStr}) ${timeStr}`;
+            datetimeText.classList.remove('empty-text');
+          }
+          
+          // モーダルを閉じる
+          setTimeout(() => {
+            closeCalendarModal();
+          }, 300);
+        } catch (e) {
+          console.error('時間枠選択エラー:', e);
+          alert('時間枠選択エラー: ' + e.message);
+        }
       };
       
       // 初期化処理を実行
@@ -1280,6 +1336,7 @@
     // アプリケーションの初期化を実行
     initializeApp().catch(error => {
       console.error('アプリケーションの初期化に失敗しました:', error);
+      alert('アプリケーションの初期化エラー: ' + error.message);
     });
   </script>
 </body>
