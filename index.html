@@ -764,317 +764,184 @@
     </div>
   </div>
 
-  <script type="module">
-    import configPromise from './config.js';
-    
-    // グローバル変数を設定
+  <script>
+    // グローバル変数の設定
     var submitted = false;
-    window.currentDate = new Date();
-    window.timeSlots = [
+    var currentDate = new Date();
+    var timeSlots = [
       "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
       "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
     ];
     
-    // モーダルを開く関数をグローバルに定義
-    window.openCalendarModal = function() {
-      console.log('カレンダーモーダルを開きます');
-      const modal = document.getElementById('calendar-modal');
-      if (modal) {
-        modal.classList.add('active');
-        // モーダルを開いたときにカレンダーを更新
-        if (window.updateCalendar) {
-          window.updateCalendar();
-        } else {
-          console.error('updateCalendar関数が見つかりません');
-        }
-      } else {
-        console.error('calendar-modalが見つかりません');
-      }
-    };
-    
-    // モーダルを閉じる関数もグローバルに定義
-    window.closeCalendarModal = function() {
-      console.log('カレンダーモーダルを閉じます');
-      const modal = document.getElementById('calendar-modal');
-      if (modal) {
-        modal.classList.remove('active');
-      }
-    };
-    
     // 生年月日ピッカーを開く関数
-    window.openBirthdatePicker = function() {
+    function openBirthdatePicker() {
       console.log('生年月日ピッカーを開きます');
       const datePicker = document.getElementById('birthdate');
-      if (datePicker) {
-        // 隠れたネイティブのdate入力をクリック
-        datePicker.click();
-        
-        // 値が変更されたらテキスト表示を更新
-        datePicker.addEventListener('change', function() {
-          window.updateBirthdateDisplay();
-        }, { once: false });
-      } else {
-        console.error('生年月日フィールドが見つかりません');
-      }
-    };
+      datePicker.click();
+      
+      // 値が変更されたらテキスト表示を更新
+      datePicker.addEventListener('change', function() {
+        updateBirthdateDisplay();
+      });
+    }
     
     // 生年月日表示を更新する関数
-    window.updateBirthdateDisplay = function() {
+    function updateBirthdateDisplay() {
       console.log('生年月日表示を更新します');
       const datePicker = document.getElementById('birthdate');
       const birthdateText = document.getElementById('birthdate-text');
       
-      if (datePicker && birthdateText) {
-        if (datePicker.value) {
-          // YYYY-MM-DD から YYYY年MM月DD日 に変換
-          const dateObj = new Date(datePicker.value);
-          const year = dateObj.getFullYear();
-          const month = dateObj.getMonth() + 1;
-          const day = dateObj.getDate();
-          birthdateText.textContent = `${year}年${month}月${day}日`;
-          birthdateText.style.color = '#000'; // 選択済みの色に変更
-        } else {
-          birthdateText.textContent = '日付を選択してください';
-          birthdateText.style.color = '#999';
-        }
+      if (datePicker.value) {
+        // YYYY-MM-DD から YYYY年MM月DD日 に変換
+        const dateObj = new Date(datePicker.value);
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth() + 1;
+        const day = dateObj.getDate();
+        birthdateText.textContent = `${year}年${month}月${day}日`;
+        birthdateText.style.color = '#000'; // 選択済みの色に変更
       } else {
-        console.error('生年月日フィールドまたはテキスト要素が見つかりません');
+        birthdateText.textContent = '日付を選択してください';
+        birthdateText.style.color = '#999';
       }
-    };
+    }
     
-    // タッチイベントハンドラ
-    window.handleTouchStart = function(event) {
-      event.preventDefault();
-      window.openCalendarModal();
-    };
+    // カレンダーモーダルを開く関数
+    function openCalendarModal() {
+      console.log('カレンダーモーダルを開きます');
+      const modal = document.getElementById('calendar-modal');
+      modal.classList.add('active');
+      // モーダルを開いたときにカレンダーを更新
+      updateCalendar();
+    }
     
-    // 週を切り替えるグローバル関数
-    window.prevWeek = function() {
-      window.currentDate.setDate(window.currentDate.getDate() - 7);
-      window.updateCalendar();
-    };
+    // カレンダーモーダルを閉じる関数
+    function closeCalendarModal() {
+      console.log('カレンダーモーダルを閉じます');
+      const modal = document.getElementById('calendar-modal');
+      modal.classList.remove('active');
+    }
+    
+    // 前の週に移動する関数
+    function prevWeek() {
+      currentDate.setDate(currentDate.getDate() - 7);
+      updateCalendar();
+    }
 
-    window.nextWeek = function() {
-      window.currentDate.setDate(window.currentDate.getDate() + 7);
-      window.updateCalendar();
-    };
+    // 次の週に移動する関数
+    function nextWeek() {
+      currentDate.setDate(currentDate.getDate() + 7);
+      updateCalendar();
+    }
     
-    // DOM読み込み完了時の処理
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOMContentLoaded イベント発火');
+    // フォーム送信処理
+    function handleSubmit(event) {
+      event.preventDefault();
+      const form = document.getElementById('reservationForm');
       
-      // 生年月日フィールドのイベント設定
+      if (!form.checkValidity()) {
+        alert('必須項目を入力してください。');
+        return false;
+      }
+
+      const checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
+      if (checkboxes.length === 0) {
+        alert('AINOHOTを知ったきっかけを1つ以上選択してください。');
+        return false;
+      }
+
+      const submitButton = document.getElementById('submitButton');
+      submitButton.disabled = true;
+      submitted = true;
+
+      try {
+        console.log('フォーム送信開始');
+        form.submit();
+        console.log('フォーム送信完了');
+      } catch (error) {
+        console.error('送信処理エラー:', error);
+        alert('送信中にエラーが発生しました。もう一度お試しください。');
+        submitButton.disabled = false;
+        submitted = false;
+      }
+
+      return false;
+    }
+    
+    // ページ読み込み完了時の処理
+    window.onload = function() {
+      console.log('ページ読み込み完了');
+      
+      // 生年月日フィールドの初期設定
+      const today = new Date();
+      const defaultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      const formattedDate = `${defaultDate.getFullYear()}-${String(defaultDate.getMonth() + 1).padStart(2, '0')}-${String(defaultDate.getDate()).padStart(2, '0')}`;
+      document.getElementById('birthdate').max = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      document.getElementById('birthdate').value = formattedDate;
+      
+      // 生年月日表示を初期化
+      updateBirthdateDisplay();
+      
+      // モバイル対応のタッチイベント
       const birthdateSelect = document.getElementById('birthdate-select');
-      if (birthdateSelect) {
-        console.log('生年月日フィールドにイベントリスナーを設定');
-        
-        // クリックとタッチの両方に対応
-        const handleBirthdateClick = function(event) {
-          console.log('生年月日フィールドがクリック/タッチされました');
-          if (event.type === 'touchstart') {
-            event.preventDefault();
-          }
-          window.openBirthdatePicker();
-        };
-        
-        birthdateSelect.addEventListener('click', handleBirthdateClick);
-        birthdateSelect.addEventListener('touchstart', handleBirthdateClick);
-      } else {
-        console.error('生年月日フィールドが見つかりません');
-      }
+      birthdateSelect.addEventListener('touchstart', function(event) {
+        event.preventDefault();
+        openBirthdatePicker();
+      });
       
-      // 予約日時フィールドのイベント設定
       const datetimeSelect = document.getElementById('datetime-select');
-      if (datetimeSelect) {
-        console.log('予約日時フィールドにイベントリスナーを設定');
-        
-        // クリックとタッチの両方に対応
-        const handleDatetimeClick = function(event) {
-          console.log('予約日時フィールドがクリック/タッチされました');
-          if (event.type === 'touchstart') {
-            event.preventDefault();
-          }
-          window.openCalendarModal();
-        };
-        
-        datetimeSelect.addEventListener('click', handleDatetimeClick);
-        datetimeSelect.addEventListener('touchstart', handleDatetimeClick);
-      } else {
-        console.error('予約日時フィールドが見つかりません');
-      }
-    });
+      datetimeSelect.addEventListener('touchstart', function(event) {
+        event.preventDefault();
+        openCalendarModal();
+      });
+      
+      // iframe load event
+      document.getElementById('hidden_iframe').onload = function() {
+        if (submitted) {
+          window.location.href = 'thanks.html';
+        }
+      };
+    };
+  </script>
+  
+  <script type="module">
+    import configPromise from './config.js';
     
     async function initializeApp() {
       const config = await configPromise;
       
       let liffId = config.liff.id;
       let isLiffInitialized = false;
-      let formSubmitted = false;
       
       const CALENDAR_ID = config.googleCalendar.calendarId;
       const API_KEY = config.googleCalendar.apiKey;
       
-      // 生年月日フィールドの初期設定（18歳のデフォルト値を設定）
-      const today = new Date();
-      const defaultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-      const formattedDate = `${defaultDate.getFullYear()}-${String(defaultDate.getMonth() + 1).padStart(2, '0')}-${String(defaultDate.getDate()).padStart(2, '0')}`;
-      const birthdateField = document.getElementById('birthdate');
-      if (birthdateField) {
-        birthdateField.max = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        birthdateField.value = formattedDate;
+      // LIFF初期化
+      async function initializeLiff() {
+        if (isLiffInitialized) return;
         
-        // 生年月日表示を初期化
-        window.updateBirthdateDisplay();
-      }
-      
-      // モバイルデバイスでの表示調整
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        console.log('モバイルデバイスを検出しました');
-        // モバイル向けの調整
-      }
-      
-      // iframe load eventの追加
-      document.getElementById('hidden_iframe').onload = function() {
-        if (formSubmitted) {
-          window.location.href = 'thanks.html';
-        }
-      };
-
-      // 現在の日付を保持（グローバル変数を使用）
-      window.currentDate = new Date();
-      let pickerYear = window.currentDate.getFullYear();
-      
-      // 利用可能な時間枠（グローバル変数を使用）
-      window.timeSlots = [
-        "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
-        "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
-      ];
-
-      // 月名の配列
-      const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-
-      // 月ピッカーの初期化
-      function initMonthPicker() {
-        const monthsGrid = document.getElementById('months-grid');
-        monthsGrid.innerHTML = '';
-        
-        monthNames.forEach((month, index) => {
-          const monthItem = document.createElement('div');
-          monthItem.className = 'month-item';
-          if (pickerYear === window.currentDate.getFullYear() && index === window.currentDate.getMonth()) {
-            monthItem.classList.add('current');
-          }
-          monthItem.textContent = month;
-          monthItem.addEventListener('click', () => {
-            selectMonth(index);
-          });
-          monthsGrid.appendChild(monthItem);
-        });
-        
-        document.getElementById('current-year').textContent = pickerYear;
-      }
-
-      // 月選択処理
-      function selectMonth(monthIndex) {
-        const newDate = new Date(pickerYear, monthIndex, 1);
-        window.currentDate = newDate;
-        updateCalendar();
-        document.getElementById('month-picker').classList.remove('active');
-      }
-
-      // 月ピッカートグル
-      document.getElementById('calendar-month').addEventListener('click', () => {
-        const picker = document.getElementById('month-picker');
-        picker.classList.toggle('active');
-        initMonthPicker();
-      });
-
-      // 年移動ボタン
-      document.getElementById('prev-year').addEventListener('click', (e) => {
-        e.stopPropagation();
-        pickerYear--;
-        initMonthPicker();
-      });
-
-      document.getElementById('next-year').addEventListener('click', (e) => {
-        e.stopPropagation();
-        pickerYear++;
-        initMonthPicker();
-      });
-
-      // 月ピッカー外クリックで閉じる
-      document.addEventListener('click', (event) => {
-        const picker = document.getElementById('month-picker');
-        const monthLabel = document.getElementById('calendar-month');
-        if (picker.classList.contains('active') && !picker.contains(event.target) && event.target !== monthLabel) {
-          picker.classList.remove('active');
-        }
-      });
-
-      // Googleカレンダーから予定を取得
-      window.loadCalendarEvents = async function(date) {
-        const timeMin = new Date(date);
-        timeMin.setHours(9, 30, 0, 0);
-        
-        const timeMax = new Date(date);
-        timeMax.setHours(16, 0, 0, 0);
-
         try {
-          await new Promise((resolve, reject) => {
-            gapi.load('client', async () => {
-              try {
-                await gapi.client.init({
-                  apiKey: API_KEY,
-                  discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-                });
-                resolve();
-              } catch (error) {
-                reject(error);
-              }
-            });
+          console.log('LIFF初期化開始');
+          await liff.init({ 
+            liffId: liffId,
+            withLoginOnExternalBrowser: true
           });
+          console.log('LIFF初期化成功');
+          isLiffInitialized = true;
 
-          const response = await gapi.client.calendar.events.list({
-            'calendarId': CALENDAR_ID,
-            'timeMin': timeMin.toISOString(),
-            'timeMax': timeMax.toISOString(),
-            'singleEvents': true,
-            'orderBy': 'startTime'
-          });
-
-          return response.result.items;
-        } catch (error) {
-          console.error('Googleカレンダーの読み込みに失敗しました:', error);
-          return [];
-        }
-      };
-
-      // 時間枠が予約可能かチェック
-      window.checkTimeAvailability = function(events, date, time) {
-        const [hours, minutes] = time.split(':');
-        const slotTime = new Date(date);
-        slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-        
-        const slotEndTime = new Date(slotTime.getTime() + 90 * 60000); // 90分
-        
-        if (events) {
-          for (const event of events) {
-            const startTime = new Date(event.start.dateTime);
-            const endTime = new Date(event.end.dateTime);
-            
-            if (
-              (slotTime >= startTime && slotTime < endTime) ||
-              (slotEndTime > startTime && slotEndTime <= endTime) ||
-              (slotTime <= startTime && slotEndTime >= endTime)
-            ) {
-              return false; // 予約不可
-            }
+          if (!liff.isLoggedIn()) {
+            console.log('未ログイン状態です。ログインを開始します。');
+            liff.login();
+          } else {
+            console.log('ログイン済みです。プロフィールを取得します。');
+            const profile = await liff.getProfile();
+            console.log('プロフィール取得成功:', profile);
+            document.getElementById('lineUserId').value = profile.userId;
           }
+        } catch (error) {
+          console.error('LIFF初期化エラー:', error);
+          alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
         }
-        
-        return true; // 予約可能
-      };
+      }
       
       // カレンダーの更新処理
       window.updateCalendar = async function() {
@@ -1093,12 +960,12 @@
         const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
         
         // 月表示を更新
-        monthElement.textContent = `${window.currentDate.getFullYear()}年${window.currentDate.getMonth() + 1}月`;
+        monthElement.textContent = `${currentDate.getFullYear()}年${currentDate.getMonth() + 1}月`;
         
         // 週の開始日を月曜日に設定
-        let weekStart = new Date(window.currentDate);
-        const day = window.currentDate.getDay();
-        weekStart.setDate(window.currentDate.getDate() - (day === 0 ? 6 : day - 1));
+        let weekStart = new Date(currentDate);
+        const day = currentDate.getDay();
+        weekStart.setDate(currentDate.getDate() - (day === 0 ? 6 : day - 1));
         
         // テーブルを生成
         const table = document.createElement('table');
@@ -1139,10 +1006,10 @@
         
         try {
           // Googleカレンダーから予定を取得
-          const events = await window.loadCalendarEvents(window.currentDate);
+          const events = await loadCalendarEvents(currentDate);
           
           // 時間枠ごとの行を生成
-          window.timeSlots.forEach(time => {
+          timeSlots.forEach(time => {
             const row = document.createElement('tr');
             
             // 時間ラベル
@@ -1157,11 +1024,11 @@
               cell.className = index >= 7 ? 'week2' : 'week1';
               
               // この時間が予約可能かチェック
-              const isAvailable = window.checkTimeAvailability(events, date, time);
+              const isAvailable = checkTimeAvailability(events, date, time);
               
               if (isAvailable) {
                 cell.classList.add('available');
-                cell.addEventListener('click', () => window.selectTimeSlot(time, date, cell));
+                cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
               } else {
                 cell.classList.add('unavailable');
               }
@@ -1176,7 +1043,7 @@
           console.error('カレンダーの更新に失敗しました:', error);
           
           // エラー時も時間枠ごとの行を生成（すべて利用可能として表示）
-          window.timeSlots.forEach(time => {
+          timeSlots.forEach(time => {
             const row = document.createElement('tr');
             
             // 時間ラベル
@@ -1192,7 +1059,7 @@
               
               // エラー時はすべて予約可能として表示
               cell.classList.add('available');
-              cell.addEventListener('click', () => window.selectTimeSlot(time, date, cell));
+              cell.addEventListener('click', () => selectTimeSlot(time, date, cell));
               
               row.appendChild(cell);
             });
@@ -1205,8 +1072,72 @@
         calendarContainer.innerHTML = '';
         calendarContainer.appendChild(table);
       };
+      
+      // Googleカレンダーから予定を取得
+      async function loadCalendarEvents(date) {
+        const timeMin = new Date(date);
+        timeMin.setHours(9, 30, 0, 0);
+        
+        const timeMax = new Date(date);
+        timeMax.setHours(16, 0, 0, 0);
 
-      // 時間枠選択処理を修正
+        try {
+          await new Promise((resolve, reject) => {
+            gapi.load('client', async () => {
+              try {
+                await gapi.client.init({
+                  apiKey: API_KEY,
+                  discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+                });
+                resolve();
+              } catch (error) {
+                reject(error);
+              }
+            });
+          });
+
+          const response = await gapi.client.calendar.events.list({
+            'calendarId': CALENDAR_ID,
+            'timeMin': timeMin.toISOString(),
+            'timeMax': timeMax.toISOString(),
+            'singleEvents': true,
+            'orderBy': 'startTime'
+          });
+
+          return response.result.items;
+        } catch (error) {
+          console.error('Googleカレンダーの読み込みに失敗しました:', error);
+          return [];
+        }
+      };
+      
+      // 時間枠が予約可能かチェック
+      function checkTimeAvailability(events, date, time) {
+        const [hours, minutes] = time.split(':');
+        const slotTime = new Date(date);
+        slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        
+        const slotEndTime = new Date(slotTime.getTime() + 90 * 60000); // 90分
+        
+        if (events) {
+          for (const event of events) {
+            const startTime = new Date(event.start.dateTime);
+            const endTime = new Date(event.end.dateTime);
+            
+            if (
+              (slotTime >= startTime && slotTime < endTime) ||
+              (slotEndTime > startTime && slotEndTime <= endTime) ||
+              (slotTime <= startTime && slotEndTime >= endTime)
+            ) {
+              return false; // 予約不可
+            }
+          }
+        }
+        
+        return true; // 予約可能
+      };
+      
+      // 時間枠選択処理
       window.selectTimeSlot = function(time, date, cell) {
         // 既存の選択をクリア
         document.querySelectorAll('.calendar-table .selected').forEach(slot => {
@@ -1238,104 +1169,12 @@
         
         // モーダルを閉じる
         setTimeout(() => {
-          window.closeCalendarModal();
+          closeCalendarModal();
         }, 300);
       };
-
-      // LIFF初期化
-      async function initializeLiff() {
-        if (isLiffInitialized) return;
-        
-        try {
-          console.log('LIFF初期化開始');
-          await liff.init({ 
-            liffId: liffId,
-            withLoginOnExternalBrowser: true
-          });
-          console.log('LIFF初期化成功');
-          isLiffInitialized = true;
-
-          if (!liff.isLoggedIn()) {
-            console.log('未ログイン状態です。ログインを開始します。');
-            liff.login();
-          } else {
-            console.log('ログイン済みです。プロフィールを取得します。');
-            const profile = await liff.getProfile();
-            console.log('プロフィール取得成功:', profile);
-            document.getElementById('lineUserId').value = profile.userId;
-          }
-        } catch (error) {
-          console.error('LIFF初期化エラー:', error);
-          alert('LINEログインの初期化に失敗しました。ページを再読み込みしてください。');
-        }
-      }
-
-      // フォーム送信処理
-      async function handleSubmit(event) {
-        event.preventDefault();
-        
-        if (formSubmitted) {
-          return false;
-        }
-
-        if (!isLiffInitialized) {
-          alert('LINEログインの初期化が完了していません。しばらく待ってから再度お試しください。');
-          return false;
-        }
-
-        if (!liff.isLoggedIn()) {
-          console.log('送信時ログイン確認: 未ログイン');
-          alert('LINEログインが必要です');
-          liff.login();
-          return false;
-        }
-
-        const form = document.getElementById('reservationForm');
-        
-        if (!form.checkValidity()) {
-          alert('必須項目を入力してください。');
-          return false;
-        }
-
-        const checkboxes = document.querySelectorAll('input[name="entry.1525260838"]:checked');
-        if (checkboxes.length === 0) {
-          alert('AINOHOTを知ったきっかけを1つ以上選択してください。');
-          return false;
-        }
-
-        const submitButton = document.getElementById('submitButton');
-        submitButton.disabled = true;
-        formSubmitted = true;
-
-        try {
-          console.log('フォーム送信開始');
-          form.submit();
-          console.log('フォーム送信完了');
-        } catch (error) {
-          console.error('送信処理エラー:', error);
-          alert('送信中にエラーが発生しました。もう一度お試しください。');
-          submitButton.disabled = false;
-          formSubmitted = false;
-        }
-
-        return false;
-      }
-
-      // フォームのsubmitイベントにハンドラーを設定
-      document.getElementById('reservationForm').onsubmit = handleSubmit;
-
-      // 初期化処理の実行
-      async function initialize() {
-        await initializeLiff();
-        await window.updateCalendar();
-      }
       
-      // 初期化を実行
-      initialize();
-      
-      // デバッグログを追加
-      console.log('「前の週へ」ボタンのイベントリスナーが設定されました');
-      console.log('「次の週へ」ボタンのイベントリスナーが設定されました');
+      // 初期化処理を実行
+      initializeLiff();
     }
     
     // アプリケーションの初期化を実行
