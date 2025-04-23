@@ -586,23 +586,6 @@
     
     /* モバイル向け調整 */
     @media (max-width: 480px) {
-      .calendar-container {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: auto;
-      }
-      
-      .calendar-table {
-        width: 100%;
-        font-size: 0.75rem;
-      }
-      
-      .calendar-table th,
-      .calendar-table td {
-        padding: 0.2rem 0;
-        min-width: 40px;
-      }
-      
       .modal-container {
         width: 95%;
         max-height: 80vh;
@@ -617,6 +600,15 @@
       
       .modal-title {
         font-size: 1.1rem;
+      }
+      
+      .calendar-table {
+        font-size: 0.8rem;
+      }
+      
+      .calendar-table th,
+      .calendar-table td {
+        padding: 0.3rem 0;
       }
     }
   </style>
@@ -852,6 +844,7 @@
       try {
         var modal = document.getElementById('calendar-modal');
         if (modal) {
+          console.log('モーダルが見つかりました');
           modal.classList.add('active');
           document.body.style.overflow = 'hidden'; // スクロール無効化
           // モーダルを開いたときにカレンダーを更新
@@ -945,6 +938,7 @@
       
       var birthdateField = document.getElementById('birthdate');
       if (birthdateField) {
+        console.log('生年月日フィールドが見つかりました');
         birthdateField.max = today.getFullYear() + '-' + 
                             String(today.getMonth() + 1).padStart(2, '0') + '-' + 
                             String(today.getDate()).padStart(2, '0');
@@ -952,11 +946,14 @@
         
         // 生年月日表示を初期化
         updateBirthdateDisplay();
+      } else {
+        console.error('生年月日フィールドが見つかりません');
       }
       
       // 追加のモバイル対応
       var birthdateSelect = document.getElementById('birthdate-select');
       if (birthdateSelect) {
+        console.log('生年月日選択フィールドが見つかりました');
         // タッチデバイス用の追加イベント（fastclickを考慮）
         addEventListeners(birthdateSelect, ['touchstart', 'touchend'], function(e) {
           e.preventDefault();
@@ -964,10 +961,13 @@
             openBirthdatePicker();
           }, 10);
         });
+      } else {
+        console.error('生年月日選択フィールドが見つかりません');
       }
       
       var datetimeSelect = document.getElementById('datetime-select');
       if (datetimeSelect) {
+        console.log('日時選択フィールドが見つかりました');
         // タッチデバイス用の追加イベント
         addEventListeners(datetimeSelect, ['touchstart', 'touchend'], function(e) {
           e.preventDefault();
@@ -975,25 +975,33 @@
             openCalendarModal();
           }, 10);
         });
+      } else {
+        console.error('日時選択フィールドが見つかりません');
       }
       
       // カレンダーモーダルの閉じるボタン
       var modalCloseBtn = document.querySelector('.modal-close');
       if (modalCloseBtn) {
+        console.log('モーダルクローズボタンが見つかりました');
         addEventListeners(modalCloseBtn, ['click', 'touchend'], function(e) {
           e.preventDefault();
           closeCalendarModal();
         });
+      } else {
+        console.error('モーダルクローズボタンが見つかりません');
       }
       
       // iframe load event
       var hiddenIframe = document.getElementById('hidden_iframe');
       if (hiddenIframe) {
+        console.log('hidden_iframeが見つかりました');
         hiddenIframe.onload = function() {
           if (submitted) {
             window.location.href = 'thanks.html';
           }
         };
+      } else {
+        console.error('hidden_iframeが見つかりません');
       }
     };
   </script>
