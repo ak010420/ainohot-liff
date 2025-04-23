@@ -96,28 +96,75 @@
     }
     .calendar-nav {
       display: flex;
-      gap: 0.5rem;
+      gap: 1rem;
+      align-items: center;
     }
     .calendar-nav button {
       background: none;
       border: none;
       cursor: pointer;
       padding: 0.5rem;
+      font-size: 1.2rem;
+      color: #3498db;
     }
-    .calendar-view-toggle {
+    .calendar-month-year {
+      position: relative;
+      display: inline-block;
+    }
+    .calendar-month-year h2 {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      margin: 0;
+      font-size: 1.2rem;
+    }
+    .calendar-month-year h2::after {
+      content: "▼";
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
+    .month-picker {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 10;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border-radius: 8px;
+      padding: 1rem;
+      display: none;
+      width: 280px;
+    }
+    .month-picker.active {
+      display: block;
+    }
+    .year-nav {
       display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .year-nav button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+    .months-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 0.5rem;
     }
-    .calendar-view-toggle button {
-      padding: 0.5rem 1rem;
-      border: 1px solid #3498db;
-      background: white;
-      color: #3498db;
+    .month-item {
+      text-align: center;
+      padding: 0.5rem;
       border-radius: 4px;
       cursor: pointer;
     }
-    .calendar-view-toggle button.active {
-      background: #3498db;
+    .month-item:hover {
+      background-color: #f0f0f0;
+    }
+    .month-item.current {
+      background-color: #3498db;
       color: white;
     }
     .calendar-grid {
@@ -213,13 +260,22 @@
         <label for="reservation_datetime">予約日時 *</label>
         <div class="calendar-container">
           <div class="calendar-header">
-            <h2 id="calendar-month">2024年11月</h2>
-            <div class="calendar-nav">
-              <button type="button" id="prev-week">←</button>
-              <div class="calendar-view-toggle">
-                <button type="button" class="active">Week</button>
+            <div class="calendar-month-year">
+              <h2 id="calendar-month">2024年11月</h2>
+              <div class="month-picker" id="month-picker">
+                <div class="year-nav">
+                  <button type="button" id="prev-year">◀</button>
+                  <span id="current-year">2024</span>
+                  <button type="button" id="next-year">▶</button>
+                </div>
+                <div class="months-grid" id="months-grid">
+                  <!-- 月のグリッドはJavaScriptで動的に生成 -->
+                </div>
               </div>
-              <button type="button" id="next-week">→</button>
+            </div>
+            <div class="calendar-nav">
+              <button type="button" id="prev-week">◀</button>
+              <button type="button" id="next-week">▶</button>
             </div>
           </div>
           <div class="calendar-grid" id="calendar-days">
@@ -305,12 +361,74 @@
 
       // 現在の日付を保持
       let currentDate = new Date();
+      let pickerYear = currentDate.getFullYear();
       
       // 利用可能な時間枠
       const timeSlots = [
         "09:30", "10:00", "10:30", "11:00", "11:30", "12:00",
         "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
       ];
+
+      // 月名の配列
+      const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+
+      // 月ピッカーの初期化
+      function initMonthPicker() {
+        const monthsGrid = document.getElementById('months-grid');
+        monthsGrid.innerHTML = '';
+        
+        monthNames.forEach((month, index) => {
+          const monthItem = document.createElement('div');
+          monthItem.className = 'month-item';
+          if (pickerYear === currentDate.getFullYear() && index === currentDate.getMonth()) {
+            monthItem.classList.add('current');
+          }
+          monthItem.textContent = month;
+          monthItem.addEventListener('click', () => {
+            selectMonth(index);
+          });
+          monthsGrid.appendChild(monthItem);
+        });
+        
+        document.getElementById('current-year').textContent = pickerYear;
+      }
+
+      // 月選択処理
+      function selectMonth(monthIndex) {
+        const newDate = new Date(pickerYear, monthIndex, 1);
+        currentDate = newDate;
+        updateCalendar();
+        document.getElementById('month-picker').classList.remove('active');
+      }
+
+      // 月ピッカートグル
+      document.getElementById('calendar-month').addEventListener('click', () => {
+        const picker = document.getElementById('month-picker');
+        picker.classList.toggle('active');
+        initMonthPicker();
+      });
+
+      // 年移動ボタン
+      document.getElementById('prev-year').addEventListener('click', (e) => {
+        e.stopPropagation();
+        pickerYear--;
+        initMonthPicker();
+      });
+
+      document.getElementById('next-year').addEventListener('click', (e) => {
+        e.stopPropagation();
+        pickerYear++;
+        initMonthPicker();
+      });
+
+      // 月ピッカー外クリックで閉じる
+      document.addEventListener('click', (event) => {
+        const picker = document.getElementById('month-picker');
+        const monthLabel = document.getElementById('calendar-month');
+        if (picker.classList.contains('active') && !picker.contains(event.target) && event.target !== monthLabel) {
+          picker.classList.remove('active');
+        }
+      });
 
       // Googleカレンダーから予定を取得
       async function loadCalendarEvents(date) {
