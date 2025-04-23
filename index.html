@@ -473,27 +473,28 @@
       box-sizing: border-box;
       background-color: #fff;
       transition: all 0.2s ease;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
     }
     
     .date-input::-webkit-calendar-picker-indicator {
       opacity: 0;
-      width: 100%;
+      width: 2rem;
       height: 100%;
       position: absolute;
-      top: 0;
-      left: 0;
       right: 0;
-      bottom: 0;
+      top: 0;
       cursor: pointer;
     }
     
     .calendar-icon-wrapper {
       position: absolute;
       right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+      top: calc(0.5rem + 0.75rem);
       pointer-events: none;
       color: #3f4e57;
+      z-index: 1;
     }
     
     .calendar-icon {
@@ -501,12 +502,15 @@
       height: 20px;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
+      vertical-align: middle;
     }
     
     .icon-svg {
       fill: currentColor;
       width: 100%;
       height: 100%;
+      vertical-align: top;
     }
     
     /* 予約カレンダーのスタイル */
@@ -566,7 +570,7 @@
 
       <div class="form-group">
         <label for="reservation_display">予約日時 *</label>
-        <div id="datetime-select" class="datetime-display" onclick="openCalendarModal()">
+        <div id="datetime-select" class="datetime-display" onclick="openCalendarModal()" ontouchstart="handleTouchStart(event)">
           <span id="datetime-text" class="empty-text">カレンダーで日時を選択する</span>
           <span class="calendar-icon">
             <svg class="icon-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -692,6 +696,12 @@
       "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"
     ];
     
+    // タッチイベントハンドラ
+    window.handleTouchStart = function(event) {
+      event.preventDefault();
+      window.openCalendarModal();
+    };
+    
     // 週を切り替えるグローバル関数
     window.prevWeek = function() {
       window.currentDate.setDate(window.currentDate.getDate() - 7);
@@ -726,7 +736,38 @@
       if (isMobile) {
         // モバイル向けの調整
         document.getElementById('birthdate').setAttribute('onfocus', 'blur()');
+        
+        // 予約日時選択フィールドのイベントリスナー追加（モバイル対応強化）
+        const datetimeSelect = document.getElementById('datetime-select');
+        if (datetimeSelect) {
+          datetimeSelect.addEventListener('touchend', function(event) {
+            event.preventDefault();
+            window.openCalendarModal();
+          }, false);
+        }
       }
+      
+      // モーダルを開く関数をグローバルに
+      window.openCalendarModal = function() {
+        console.log('カレンダーモーダルを開きます');
+        const modal = document.getElementById('calendar-modal');
+        if (modal) {
+          modal.classList.add('active');
+          // モーダルを開いたときにカレンダーを更新
+          window.updateCalendar();
+        } else {
+          console.error('calendar-modalが見つかりません');
+        }
+      };
+      
+      // モーダルを閉じる関数もグローバルに
+      window.closeCalendarModal = function() {
+        console.log('カレンダーモーダルを閉じます');
+        const modal = document.getElementById('calendar-modal');
+        if (modal) {
+          modal.classList.remove('active');
+        }
+      };
       
       // iframe load eventの追加
       document.getElementById('hidden_iframe').onload = function() {
@@ -1034,18 +1075,6 @@
         setTimeout(() => {
           window.closeCalendarModal();
         }, 300);
-      };
-
-      // モーダルを開く
-      window.openCalendarModal = function() {
-        document.getElementById('calendar-modal').classList.add('active');
-        // モーダルを開いたときにカレンダーを更新
-        window.updateCalendar();
-      };
-      
-      // モーダルを閉じる
-      window.closeCalendarModal = function() {
-        document.getElementById('calendar-modal').classList.remove('active');
       };
 
       // LIFF初期化
