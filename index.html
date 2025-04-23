@@ -137,17 +137,29 @@
       justify-content: space-between;
       margin-bottom: 0.5rem;
       align-items: center;
+      padding: 0 0.5rem;
+      height: 32px;
+    }
+    .year-nav span {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1rem;
+      line-height: 1;
     }
     .year-nav button {
       background: none;
       border: none;
       cursor: pointer;
-      padding: 0.25rem;
+      padding: 0;
       color: #3498db;
-    }
-    .year-nav span {
-      margin: 0 0.5rem;
-      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      font-size: 1rem;
+      line-height: 1;
     }
     .months-grid {
       display: grid;
@@ -232,7 +244,7 @@
     .calendar-table td.time-label {
       background-color: #f9f9f9;
       font-weight: bold;
-      font-size: 0.85rem;
+      font-size: 0.7rem;
       width: 60px;
       min-width: 60px;
       max-width: 60px;
@@ -313,9 +325,9 @@
               <h2 id="calendar-month">2024年11月</h2>
               <div class="month-picker" id="month-picker">
                 <div class="year-nav">
-                  <button type="button" id="prev-year">◀</button>
+                  <button type="button" id="prev-year">←</button>
                   <span id="current-year">2024</span>
-                  <button type="button" id="next-year">▶</button>
+                  <button type="button" id="next-year">→</button>
                 </div>
                 <div class="months-grid" id="months-grid">
                   <!-- 月のグリッドはJavaScriptで動的に生成 -->
