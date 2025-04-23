@@ -465,19 +465,54 @@
       color: #2071E3;
     }
 
-    /* 日付フィールドとカレンダーアイコンのスタイル */
+    /* カスタムカレンダーアイコン */
+    .date-field-container input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0; /* ネイティブのアイコンを非表示にする */
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+    
+    /* iOSおよびその他のモバイルデバイス向けの修正 */
+    @supports (-webkit-touch-callout: none) {
+      /* iOS特有のスタイル */
+      input[type="date"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #fff;
+        color: transparent !important;
+      }
+      
+      input[type="date"]::-webkit-date-and-time-value {
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+    
+    /* すべての環境で日付テキストを強制的に非表示 */
+    input[type="date"] {
+      color: transparent;
+    }
+    
+    input[type="date"]::-webkit-datetime-edit {
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    /* 日付フィールドコンテナ共通スタイル */
     .date-field-container {
       position: relative;
       width: 100%;
       margin-top: 0.5rem;
-      height: 3rem; /* フィールドと同じ高さ */
     }
     
-    /* 日付入力フィールド全体のスタイル */
     .date-input {
       width: 100%;
       padding: 0.75rem;
-      padding-right: 2.5rem; /* アイコンのためのスペース */
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 1rem;
@@ -487,11 +522,8 @@
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
-      height: 3rem; /* 高さを統一 */
-      font-family: 'Noto Sans JP', sans-serif; /* フォントを統一 */
-      text-align: left; /* テキストを左寄せに */
-      margin: 0; /* マージンをリセット */
-      color: transparent; /* テキストを透明に */
+      height: 3rem;
+      font-family: 'Noto Sans JP', sans-serif;
     }
     
     .date-input:hover {
@@ -504,52 +536,26 @@
       box-shadow: 0 0 0 2px rgba(32, 113, 227, 0.2);
     }
     
-    /* すべてのブラウザで標準の日付表示を非表示にする */
-    input[type="date"]::-webkit-datetime-edit,
-    input[type="date"]::-webkit-inner-spin-button,
-    input[type="date"]::-webkit-clear-button,
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      opacity: 0;
-      visibility: hidden;
-    }
-    
-    /* ネイティブのカレンダーピッカーを有効にする */
-    .date-field-container input[type="date"]::-webkit-calendar-picker-indicator {
-      opacity: 0;
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      left: 0;
-      top: 0;
-      cursor: pointer;
-      z-index: 3;
-    }
-    
-    /* 日本語の日付表示 */
+    /* 日付表示テキスト */
     input[type="date"]::before {
       content: attr(data-date);
       position: absolute;
       left: 0.75rem;
       top: 0;
-      bottom: 0;
-      height: 1.2rem;
-      margin: auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
       color: #333;
-      z-index: 1;
-      width: calc(100% - 3rem); /* アイコン用のスペースを確保 */
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-family: 'Noto Sans JP', sans-serif;
+      pointer-events: none;
     }
     
-    /* プレースホルダーの表示 */
+    /* プレースホルダー */
     input[type="date"]:not([data-date])::before {
       content: "日付を選択してください";
       color: #999;
     }
     
-    /* アイコンを入力フィールドの中央に配置 */
+    /* カレンダーアイコン */
     .calendar-icon-wrapper {
       position: absolute;
       right: 0.75rem;
@@ -557,12 +563,62 @@
       height: 100%;
       display: flex;
       align-items: center;
-      justify-content: center;
       pointer-events: none;
       color: #3498db;
-      z-index: 2;
+    }
+    
+    /* カレンダーアイコンのスタイル */
+    .calendar-icon {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
+    /* 予約日時表示のスタイル */
+    .datetime-display {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0;
+      transition: all 0.2s ease;
+      height: 3rem;
+    }
+    
+    .datetime-display:hover {
+      border-color: #3498db;
+    }
+    
+    .datetime-display .calendar-icon {
+      color: #3f4e57;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .datetime-display .empty-text {
+      color: #999;
+    }
+    
+    /* アイコンのスタイル */
+    .icon-svg {
+      fill: currentColor;
+      width: 100%;
+      height: 100%;
+      vertical-align: middle;
+    }
+    
     /* モバイル向け調整 */
     @media (max-width: 480px) {
       .modal-container {
@@ -608,68 +664,6 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       margin-bottom: 1rem;
-    }
-
-    /* iOSおよびその他のモバイルデバイス向けの修正 */
-    @supports (-webkit-touch-callout: none) {
-      /* iOS特有のスタイル */
-      input[type="date"] {
-        -webkit-appearance: none;
-        appearance: none;
-        background-color: #fff;
-        color: transparent !important;
-      }
-      
-      input[type="date"]::-webkit-date-and-time-value {
-        opacity: 0;
-        visibility: hidden;
-      }
-    }
-    
-    /* すべての環境で日付テキストを強制的に非表示 */
-    input[type="date"] {
-      color: transparent;
-    }
-    
-    input[type="date"]::-webkit-datetime-edit {
-      opacity: 0;
-      visibility: hidden;
-    }
-    
-    /* 日本語の日付表示 */
-    input[type="date"]::before {
-      content: attr(data-date);
-      position: absolute;
-      left: 0.75rem;
-      top: 0;
-      bottom: 0;
-      height: 1.2rem;
-      margin: auto;
-      color: #333;
-      z-index: 1;
-      width: calc(100% - 3rem); /* アイコン用のスペースを確保 */
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-family: 'Noto Sans JP', sans-serif;
-    }
-
-    /* カレンダーアイコンのホバーエフェクト */
-    .date-input:hover + .calendar-icon-wrapper {
-      color: #2071E3; /* ホバー時の色を濃い青に */
-    }
-    
-    .date-input:focus + .calendar-icon-wrapper {
-      color: #2071E3;
-    }
-
-    /* カレンダーアイコンのサイズ */
-    .calendar-icon {
-      width: 22px;
-      height: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
   </style>
 </head>
